@@ -1,0 +1,21 @@
+möglicher Aufbau einer "Number":
+    gültige Ziffern (z.B. 32 Bit = 4 Byte:
+              32      ...    15    14   13   12   11  10  9   8   7  6  5 4 3 2 1
+        4_294_967_296 ... 16_284 8192 4096 2048 1024 512 256 128 64 32 16 8 4 2 1
+    ) => max-num: 8_589_934_591 = (2^32)-1
+      => Gültige Ziffern: 10
+    _Significand_
+
+    Vorzeichen (2 Bit = 0.25 Byte:
+        ganze Zahl   | Exponent
+        0 => negativ | 0 => negativ
+        1 => positiv | 1 => positiv
+    )
+
+    Exponent (z.B. 8 Bit = 1 Byte:
+          8   7  6  5 4 3 2 1
+         128 64 32 16 8 4 2 1
+    ) => höchster  Betrag: 8_589_934_591 E128
+      => kleinster Betrag: 0 E-128
+    _base=10_
+    _exponent_

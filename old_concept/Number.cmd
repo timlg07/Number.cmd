@@ -12,7 +12,7 @@ pause&exit
         set "n2=%~2"        second number
         set "i0=1"          index
         set "r0="           result
-        set "cr=0"          current remainder
+        set "cr=0"          current carry
 
     :_add_loop
         set "c_n1=!n1:~-%i0%,1!"    current digit of first number
