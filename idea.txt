@@ -12,8 +12,8 @@ x : exponent
 _ : delimeter
 
 a,b e {0;1}
-0 : negative
-1 : positive
+1 : negative
+0 : positive
 
 the number of n's and x's is not predefined.
 
