@@ -65,5 +65,15 @@ exit /B 0
 
 :SAVE
     md "%TMP%\numbers\" >nul 2>&1
-    echo.%~2_%~3_%~4_%~5>%TMP%\numbers\%~1.num
+    echo.%~2_%~3_%~4_%~5>"%TMP%\numbers\%~1.num"
+exit /B 0
+
+:LOAD filename<String>
+    if not exist "%TMP%\numbers\%~1.num" exit /B 1
+    for /F "usebackq tokens=1-4 delims=_" %%A in ("%TMP%\numbers\%~1.num") do (
+        set "%~1.s.s=%%A"
+        set "%~1.s.n=%%B"
+        set "%~1.e.s=%%C"
+        set "%~1.e.n=%%D"
+    )
 exit /B 0
