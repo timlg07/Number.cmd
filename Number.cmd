@@ -7,7 +7,7 @@
     set "operator=%~3"
     set "operand_1=%~4"
 
-    if not defined operand_0 goto SYNTAX
+    if not defined operand_0 goto GET
 
     if "%operator%"=="+" goto ADD
 
@@ -63,12 +63,12 @@ exit /B 0
 exit /B 0
 
 
-:SAVE
+:SAVE variablename<String> sign significands sign exponent
     md "%TMP%\numbers\" >nul 2>&1
     echo.%~2_%~3_%~4_%~5>"%TMP%\numbers\%~1.num"
 exit /B 0
 
-:LOAD filename<String>
+:LOAD variablename<String>
     if not exist "%TMP%\numbers\%~1.num" exit /B 1
     for /F "usebackq tokens=1-4 delims=_" %%A in ("%TMP%\numbers\%~1.num") do (
         set "%~1.s.s=%%A"
