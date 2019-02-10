@@ -1,0 +1,46 @@
+Since it provides no advantages to store and calculate with binarys in batch,
+I decided to use decimal numbers instead.
+
+The rest is still the same, but structured more intuitive:
+
+a_n...n_b_x...x
+
+a : sign of whole number
+n : significands
+b : sign of exponent
+x : exponent
+_ : delimeter
+
+a,b e {0;1}
+1 : negative
+0 : positive
+
+the number of n's and x's is not predefined.
+
+
+Implementation:
+  - The string will be saved in a .txt-file
+  - The file will be located in %temp%
+  - Its name will be the variable-name of the number
+  - The string will be read with a for/f loop (delims=_)
+
+
+Planned Functions:
+
+    Arithmetic
+        - addition
+        - subtraction
+        - multiplication
+        - division
+        - ...
+
+    Variables
+        - pi
+        - e
+        - ... (maybe some physical)
+
+    Output & Input
+        - Integer (decimal, binary, hexadecimal)
+        - Double  (decimal)
+        - Scientific (decimal)
+        - text-file including the Number
