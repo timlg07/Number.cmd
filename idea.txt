@@ -15,3 +15,12 @@ example:
 only decimal supported
 
 
+Command:
+
+"Number" command variable ["="] operand [operator] [operand]
+
+command  = "set" | "get" | "add" | "sub" | "mul" | "div"
+operand  = number<double> | variable
+operator = "+" | "-" | "*" | "/"
+variable = letters
+letters  = ("a" | ... | "z") [letters]
