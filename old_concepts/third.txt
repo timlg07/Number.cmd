@@ -1,0 +1,26 @@
+Number gets saved in this format:
+
+sign_number_number
+
+sign = negative | positive
+negative = "1"
+positive = "0"
+number = "0" | "1" | ... | "9"
+
+
+example:
+	19.99 => 0_19_99
+	-2    => 1_2_0
+
+only decimal supported
+
+
+Command:
+
+"Number" command," ",variable,[" ","="]," ",operand," ",[operator]," ",[operand]
+
+command  = "set" | "get" | "add" | "sub" | "mul" | "div"
+operand  = number<double> | variable
+operator = "+" | "-" | "*" | "/"
+variable = letters
+letters  = ("a" | ... | "z"),[letters]
