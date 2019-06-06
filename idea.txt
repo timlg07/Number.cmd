@@ -1,8 +1,8 @@
-Command  = "Number.cmd ",variable," = ",number," ",operator," ",number;
+befehl   = "Number.cmd ",variable," = ",zahl," ",operator," ",zahl;
 variable = ("a"|"b"|...|"z"),[variable];
 operator = "+"|"-"|"*"|"/";
 
-number   = (ganzzahl|"NaN"),"E",(ganzzahl);
+zahl     = (ganzzahl,"E",ganzzahl)|"NaN";
 ganzzahl = (vorzeichen,ziffern)|"0";
 vorzeichen = "+"|"-";
 ziffern  = ("0"|"1"|...|"9"),[ziffern];
