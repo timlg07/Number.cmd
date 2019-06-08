@@ -51,6 +51,13 @@ exit /b 1
 		
 		REM define exponent
 		set "%~1.exponent.integer=%%E"
+		if "%%E"=="" (
+			if "!%~1:~-1!"=="E" (
+				set "%~1.exponent.integer=1"
+			) else (
+				set "%~1.exponent.integer=0"
+			)
+		)
 		
 		REM if no sign is given and the number is not zero, it's assumed to be positive
 		if "!%~1.exponent.integer:~0,1!" NEQ "+"  (
