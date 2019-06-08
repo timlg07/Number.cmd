@@ -2,7 +2,7 @@ befehl   = "Number.cmd ",variable," = ",zahl," ",operator," ",zahl;
 variable = ("a"|"b"|...|"z"),[variable];
 operator = "+"|"-"|"*"|"/";
 
-zahl     = (ganzzahl,"E",ganzzahl)|"NaN";
-ganzzahl = (vorzeichen,ziffern)|"0";
+zahl     = (ganzzahl,["E",[ganzzahl]])|"NaN";
+ganzzahl = [vorzeichen],ziffern;
 vorzeichen = "+"|"-";
 ziffern  = ("0"|"1"|...|"9"),[ziffern];
