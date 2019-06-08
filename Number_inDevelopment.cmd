@@ -23,8 +23,15 @@ exit /b 1
 
 :: Splits the String representation of a number in its parts
 :: @param {String} variable name
-:decode (String %1)
+:decode <String>%1
 	if "!%~1!"=="NaN" exit /b 1
+	
+	REM if no sign is given and the number is not zero, it's assumed to be positive
+	if "!%~1:~0,1!" NEQ "+"  (
+	if "!%~1:~0,1!" NEQ "-"  (
+	if "!%~1:~0,2!" NEQ "0E" (
+		set "%~1=+!%~1!"
+	)))
 	
 	for /F "delims=E tokens=1,2" %%D in ("!%~1!") do (
 	
@@ -33,18 +40,18 @@ exit /b 1
 		if "%%D"=="0" (
 			set "%~1.zero=true"
 		) else (
-			echo.%%D|find "+"&&set "%~1.positive=true"
-			echo.%%D|find "-"&&set "%~1.negative=true"
+			REM remove leading zeros
+			for /f "tokens=* delims=0" %%n in ("!%~1.mantissa.integer:~1!") do set "%~1.mantissa.integer=!%~1.mantissa.integer:~0,1!%%n"
 		)
+		
 		REM define exponent
 		set "%~1.exponent.integer=%%E"
 		if "%%E"=="0" (
 			set "%~1.exponent.zero=true"
 		) else (
-			echo.%%E|find "+"&&set "%~1.exponent.positive=true"
-			echo.%%E|find "-"&&set "%~1.exponent.negative=true"
+			REM remove leading zeros
+			for /f "tokens=* delims=0" %%n in ("!%~1.exponent.integer:~1!") do set "%~1.exponent.integer=!%~1.exponent.integer:~0,1!%%n"
 		)
 		
-	REM hiding the output of `find`
-	)>nul 2>&1
+	)
 exit /b 0
