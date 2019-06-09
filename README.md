@@ -7,8 +7,8 @@ command  = "Number.cmd ",variable," = ",number," ",operator," ",number;
 variable = ("a"|"b"|...|"z"),[variable];
 operator = "+"|"-"|"*"|"/";
 
-number   = (integer,"E",integer)|"NaN";
-integer  = (sign,digits)|"0";
+number   = (integer,["E",[integer]])|"NaN";
+integer  = [sign],digits;
 sign     = "+"|"-";
 digits   = ("0"|"1"|...|"9"),[digits];
 ```
