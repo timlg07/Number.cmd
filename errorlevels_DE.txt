@@ -1,0 +1,5 @@
+ 0: Erfolgreich
+ 1: Der erste Operand ist keine Zahl (NaN)
+ 2: Der zweite Operand ist keine Zahl (NaN)
+ 3: Unbekannter Operator
+ 4: Fehlende(r) Parameter

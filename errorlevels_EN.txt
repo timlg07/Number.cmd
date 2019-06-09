@@ -1,0 +1,5 @@
+ 0: Success
+ 1: First operand is not a number (NaN)
+ 2: Second operand is not a number (NaN)
+ 3: Unknown operator
+ 4: Missing parameter(s)
