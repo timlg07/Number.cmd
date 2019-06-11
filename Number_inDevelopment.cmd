@@ -25,12 +25,27 @@ exit /b 1
 :: @param {String} variable name
 :decode <String>%1
 	if "!%~1!"=="NaN" exit /b 1
-
 	
+	REM check for static constants
+	if /i "!%~1:~0,7!"=="Number." (
+		REM 2.71828182845904523536028747135266249775724709369995 -> INT32
+		if /i "!%~1:~7!"=="e"  set "%~1=+271828182E-8"
+		REM 3.141592653589793238462643383279502884197169399375105820974944 -> INT32
+		if /i "!%~1:~7!"=="pi" set "%~1=+314159265E-8"
+	)
+	
+	REM if only E^x is given the mantissa is 1; this is needed here so the for is executed in this case, too
+	if "!%~1:~0,1!"=="E"  set "%~1=+1!%~1!"
+	
+	REM splits the number up and sets the variables
 	for /F "delims=E tokens=1,2" %%D in ("!%~1!") do (
 	
 		REM define mantissa
 		set "%~1.mantissa.integer=%%D"
+		
+		REM if only E^x is given the mantissa is 1
+		if "!%~1:~0,2!"=="+E" set "%~1.mantissa.integer=+1"
+		if "!%~1:~0,2!"=="-E" set "%~1.mantissa.integer=-1"
 		
 		REM if no sign is given and the number is not zero, it's assumed to be positive
 		if "!%~1.mantissa.integer:~0,1!" NEQ "+"  (
@@ -74,6 +89,5 @@ exit /b 1
 			REM remove leading zeros
 			for /f "tokens=* delims=0" %%n in ("!%~1.exponent.integer:~1!") do set "%~1.exponent.integer=!%~1.exponent.integer:~0,1!%%n"
 		)
-		
 	)
 exit /b 0
