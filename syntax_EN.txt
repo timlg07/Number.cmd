@@ -1,8 +1,12 @@
-command  = "Number.cmd ",variable," = ",number," ",operator," ",number;
+command  = "Number.cmd ",variable," = ",operand," ",operator," ",operand;
 variable = ("a"|"b"|...|"z"),[variable];
+operand  = number|"NaN"|constant;
 operator = "+"|"-"|"*"|"/";
 
-number   = (integer,["E",[integer]])|"NaN";
+number   = (integer,["E",[integer]])|("E",[integer]);
 integer  = [sign],digits;
 sign     = "+"|"-";
 digits   = ("0"|"1"|...|"9"),[digits];
+
+constant = "Number.",c_name;
+c_name   = "e"|"pi";

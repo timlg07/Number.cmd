@@ -1,8 +1,12 @@
-befehl   = "Number.cmd ",variable," = ",zahl," ",operator," ",zahl;
+befehl   = "Number.cmd ",variable," = ",operand," ",operator," ",operand;
 variable = ("a"|"b"|...|"z"),[variable];
+operand  = number|"NaN"|konstante;
 operator = "+"|"-"|"*"|"/";
 
-zahl     = (ganzzahl,["E",[ganzzahl]])|"NaN";
+zahl     = (ganzzahl,["E",[ganzzahl]])|("E",[ganzzahl]);
 ganzzahl = [vorzeichen],ziffern;
 vorzeichen = "+"|"-";
 ziffern  = ("0"|"1"|...|"9"),[ziffern];
+
+konstante= "Number.",k_name;
+k_name   = "e"|"pi";
