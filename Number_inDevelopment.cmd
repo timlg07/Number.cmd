@@ -21,6 +21,48 @@
 exit /b 1
 
 
+
+:Addition
+
+	:: make sure both numbers have the same exponent
+	:: by decreasing the higher exponent while increasing its mantissa:
+	
+	if %_operand1.exponent.integer% GTR %_operand2.exponent.integer% (
+		REM difference between both exponents
+		set /a delta = _operand1.exponent.integer - _operand2.exponent.integer
+		REM multiply with 10^delta
+		for /L %%i in (1 1 !delta!) do (
+			set "_operand1.mantissa.integer=!_operand1.mantissa.integer!0"
+		)
+		REM decrease the exponent
+		set /a _operand1.exponent.integer -= delta
+	)
+
+	if %_operand2.exponent.integer% GTR %_operand1.exponent.integer% (
+		REM difference between both exponents
+		set /a delta = _operand2.exponent.integer - _operand1.exponent.integer
+		REM multiply with 10^delta
+		for /L %%i in (1 1 !delta!) do (
+			set "_operand2.mantissa.integer=!_operand2.mantissa.integer!0"
+		)
+		REM decrease the exponent
+		set /a _operand2.exponent.integer -= delta
+	)
+
+	:: Now both exponents are equal and the addition can be started:
+	if %_operand1.exponent.integer% EQU %_operand2.exponent.integer% (
+	
+		REM ISSUE:INT32 :: highest possible positive number: (2^32/2)-1 = 2147483647
+		set /a sum = _operand1.mantissa.integer + _operand2.mantissa.integer
+		
+		REM save result
+		set "@return=!sum!E%_operand1.exponent.integer%"
+	)
+
+goto Finish
+
+
+
 :: Splits the String representation of a number in its parts
 :: @param {String} variable name
 :decode <String>%1
