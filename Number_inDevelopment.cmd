@@ -136,6 +136,58 @@ exit /b 0
 
 
 
+
+:: Optimizes the String representation of a number
+:: @param {String} variable name
+:optimize <String>%1
+	REM splits up the number
+	for /F "delims=E tokens=1,2" %%D in ("!%~1!") do (
+		set "_mantissa=%%D"
+		set "_exponent=%%E"
+	)
+	
+	:zeroTreatment
+		REM In case the mantissa is zero, it makes sense if the exponent is also zero.
+		if "%_mantissa:0=%"=="" (
+			REM no further optimization needed
+			set "@return=0E0"
+			exit /b 0
+		)
+	
+	:removeTrailingZeros
+		REM removes the last zero and increases the exponent
+		REM (but only if the number isn't zero)
+		if "%_mantissa:~-1%"=="0" (
+		if not "%_mantissa:0=%"=="" (
+			set /a _exponent += 1
+			set "_mantissa=%_mantissa:~0,-1%"
+			REM next iteration of the do-while-loop, which stops at the first non-zero value
+			goto removeTrailingZeros
+		))
+	
+	:addPositiveSigns
+		REM if mantissa is not zero and has no sign, it gets a positive sign
+		if "%_mantissa:0=%"   NEQ ""  (
+		if "%_mantissa:~0,1%" NEQ "-" (
+		if "%_mantissa:~0,1%" NEQ "+" (
+			set "_mantissa=+%_mantissa%"
+		)))
+		
+		REM if exponent is not zero and has no sign, it gets a positive sign
+		if "%_exponent:0=%"   NEQ ""  (
+		if "%_exponent:~0,1%" NEQ "-" (
+		if "%_exponent:~0,1%" NEQ "+" (
+			set "_exponent=+%_exponent%"
+		)))
+	
+	:concatenate
+		REM combines the number again
+		set "@return=%_mantissa%E%_exponent%"
+	
+exit /b
+
+
+
 :Finish
 	call :optimize @return
 	
