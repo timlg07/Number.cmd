@@ -133,3 +133,15 @@ goto Finish
 		)
 	)
 exit /b 0
+
+
+
+:Finish
+	call :optimize @return
+	
+	echo.%@return%
+	endlocal &(
+		REM altering variable
+		set "%_variable%=%@return%"
+	)
+exit /B 0
