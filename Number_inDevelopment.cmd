@@ -63,6 +63,25 @@ goto Finish
 
 
 
+:Subtraction
+
+	REM if second operand is zero, the result is equal to the first operand
+	if "%_operand2.zero%"=="true" (
+		set "@return=%_operand1%"
+		goto finish
+	)
+	
+	REM invert the second operands sign
+	set _newSign=+
+	if "%_operand2.mantissa.integer:~0,1%"=="+" set _newSign=-
+	set "_operand2.mantissa.integer=%_newSign%%_operand2.mantissa.integer:~1%"
+
+	REM add both numbers, since a - b <=> a + (-b)
+goto Addition
+
+
+
+
 :: Splits the String representation of a number in its parts
 :: @param {String} variable name
 :decode <String>%1
