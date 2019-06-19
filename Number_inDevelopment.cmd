@@ -81,6 +81,22 @@ goto Addition
 
 
 
+:Multiplication
+
+	REM add the exponents, because:
+	REM a^r * a^s <=> a^(r+s)
+	REM a = 10; r = operand1.exponent; s = operand2.exponent;
+	set /a _exponent = _operand1.exponent.integer + _operand2.exponent.integer
+	REM multiply the mantissas, because:
+	REM m_1 * 10^r  *  m_2 * 10^s <=> m_1 * m_2  *  10^r * 10^s
+	set /a _mantissa = _operand1.mantissa.integer * _operand2.mantissa.integer
+	REM return both
+	set "@return=%_mantissa%E%_exponent%"
+
+goto Finish
+
+
+
 
 :: Splits the String representation of a number in its parts
 :: @param {String} variable name
