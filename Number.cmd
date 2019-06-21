@@ -1,6 +1,11 @@
 @echo off
 	:: Fetch and decode parameters:
 	setlocal enableDelayedExpansion
+	
+	if "%~4"=="" (
+		echo.ERROR. Missing parameter^(s^).
+		exit /b 4
+	)
 
 	set "_variable=%~1"
 	set "_operand1=%~2"
@@ -9,16 +14,19 @@
 
 	set "@return=NaN"
 
-	call :decode _operand1
-	call :decode _operand2
+	call :decode _operand1 || ( echo.ERROR. First operand is not a number ^(NaN^).  & exit /b 1 )
+	call :decode _operand2 || ( echo.ERROR. Second operand is not a number ^(NaN^). & exit /b 2 )
 
 
 	:: Call the operation function:
 	if "%_operator%"=="+" goto Addition
+	if "%_operator%"=="-" goto Subtraction
+	if "%_operator%"=="*" goto Multiplication
+	if "%_operator%"=="/" goto Division
 
 	:: if no function was called:
 	echo.ERROR. Unknown operator: "%_operator%".
-exit /b 1
+exit /b 3
 
 
 
@@ -141,6 +149,7 @@ goto Finish
 
 
 
+
 :: Splits the String representation of a number in its parts
 :: @param {String} variable name
 :decode <String>%1
@@ -214,7 +223,6 @@ exit /b 0
 
 
 
-
 :: Optimizes the String representation of a number
 :: @param {String} variable name
 :optimize <String>%1
@@ -263,7 +271,6 @@ exit /b 0
 		set "@return=%_mantissa%E%_exponent%"
 	
 exit /b
-
 
 
 :Finish
