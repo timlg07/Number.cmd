@@ -97,6 +97,49 @@ goto Finish
 
 
 
+:Division
+
+	REM remove negative sign, because it would show up at each digit
+	set /a _sign = +1
+	if "%_operand1.mantissa.integer:~0,1%"=="-" set /a _sign *= -1
+	if "%_operand2.mantissa.integer:~0,1%"=="-" set /a _sign *= -1
+	set "_operand1.mantissa.integer=%_operand1.mantissa.integer:-=%"
+	set "_operand2.mantissa.integer=%_operand2.mantissa.integer:-=%"
+
+	REM divide the mantissas, because:
+	REM ( m_1 * 10^r ) / ( m_2 * 10^s ) <=> ( m_1 / m_2 ) * ( 10^r / 10^s )
+	REM <<the following uncommented code is mainly from Batch_Tools/3-2-division.cmd>>
+	set /a _int = _operand1.mantissa.integer / _operand2.mantissa.integer
+	set "@return=%_int%"
+	if %@return%==0 set "@return="
+	set /a _remainder = _operand1.mantissa.integer - ( _int * _operand2.mantissa.integer )
+	set /a _decP = 0
+	:div_LOOP
+		set /a _intR      = (_remainder*10) /           _operand2.mantissa.integer
+		set /a _remainder = (_remainder*10) - ( _intR * _operand2.mantissa.integer )
+		set @return=%@return%%_intR%
+		set /a _decP += 1
+		
+		if %_remainder% NEQ 0 (
+		if %_decP% LSS 7 (
+			goto div_LOOP
+		))
+	
+	REM subtract the exponents, because:
+	REM a^r / a^s <=> a^(r-s)
+	REM a = 10; r = operand1.exponent; s = operand2.exponent;
+	set /a _exponent = _operand1.exponent.integer - _operand2.exponent.integer
+	REM lower the exponent for each added decimal place
+	set /a _exponent -= _decP
+	REM set sign
+	set /a @return *= _sign
+	REM return
+	set @return=%@return%E%_exponent%
+
+goto Finish
+
+
+
 
 :: Splits the String representation of a number in its parts
 :: @param {String} variable name
