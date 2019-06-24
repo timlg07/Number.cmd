@@ -60,7 +60,7 @@ exit /b 3
 	:: Now both exponents are equal and the addition can be started:
 	if %_operand1.exponent.integer% EQU %_operand2.exponent.integer% (
 	
-		REM ISSUE:INT32 :: highest possible positive number: (2^32/2)-1 = 2147483647
+		REM ISSUE:INT32 :: highest possible positive number: (2^32/2)-1 = 2'147'483'647
 		set /a sum = _operand1.mantissa.integer + _operand2.mantissa.integer
 		
 		REM save result
