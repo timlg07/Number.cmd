@@ -149,6 +149,18 @@ goto Finish
 
 
 
+:strlen <String>%1
+setlocal EnableDelayedExpansion
+    set "s=%~1_"
+    set /a len = 0
+    for %%N in (4096 2048 1024 512 256 128 64 32 16 8 4 2 1) do (
+        if "!s:~%%N,1!" NEQ "" ( 
+            set /a len += %%N
+            set "s=!s:~%%N!"
+        )
+    )
+endlocal & exit /b %len%
+
 
 :: Splits the String representation of a number in its parts
 :: @param {String} variable name
