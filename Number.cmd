@@ -2,6 +2,17 @@
 	:: Fetch and decode parameters:
 	setlocal enableDelayedExpansion
 	
+	
+	::TESTING::::::::::::::::::::::::
+	REM :test
+	REM set /p o1=
+	REM set /p o2=
+	REM call :add x = %o1% + %o2%
+	REM echo.%x%
+	REM goto test
+	:::::::::::::::::::::::::::::::::
+	
+	
 	if "%~4"=="" (
 		echo.ERROR. Missing parameter^(s^).
 		exit /b 4
@@ -59,9 +70,9 @@ exit /b 3
 
 	:: Now both exponents are equal and the addition can be started:
 	if %_operand1.exponent.integer% EQU %_operand2.exponent.integer% (
-	
-		REM ISSUE:INT32 :: highest possible positive number: (2^32/2)-1 = 2'147'483'647
-		set /a sum = _operand1.mantissa.integer + _operand2.mantissa.integer
+		
+		::TODO:: sign->subtract/add
+		call :add sum = "%_operand1.mantissa.integer:~1%" + "%_operand2.mantissa.integer:~1%"
 		
 		REM save result
 		set "@return=!sum!E%_operand1.exponent.integer%"
@@ -148,6 +159,65 @@ goto Finish
 
 
 
+:add <VarName>%1 = <BigInteger>%2 + <BigInteger>%4
+	setlocal EnableDelayedExpansion
+		set /a carry  = 0
+		set /a index  = 1
+		
+		set "return="
+		set "op1=%~2"
+		set "op2=%~4"
+		
+		call :strlen %2
+		set /a "op1.len=%errorlevel%"
+		call :strlen %4
+		set /a "op2.len=%errorlevel%"
+		
+		REM exit condition for the loop: if index has reached
+		REM Math.max( operand1.length, operand2.length ) + 1
+		REM (+1 because of the last carry)
+		if %op1.len% GEQ %op2.len% (
+			set /a maxIndex = op1.len + 1
+		) else (
+			set /a maxIndex = op2.len + 1
+		)
+		
+	:add_while
+	
+		REM The current digit is calculated by:
+		REM operand1[index] + operand2[index] + carry.
+		
+		set /a current = carry
+		set /a carry = 0
+		
+		REM If the number has less digits than the current index, it gets ignored.
+		if %op1.len% GEQ %index% set /a current += !op1:~-%index%,1!
+		if %op2.len% GEQ %index% set /a current += !op2:~-%index%,1!
+		
+		REM setting the carry:
+		if %current% GEQ 10 (
+			set /a carry = %current:~0,1%
+			set /a current = %current:~1%
+		)
+		
+		REM adding the current digit:
+		set "return=%current%%return%"
+		set /a index += 1
+		
+		REM exit condition of the do-while-loop
+		if %index% GTR %maxIndex% endlocal &(
+			REM if the first digit is zero, it gets cut off
+			if %return:~0,1% EQU 0 (
+				set "%~1=%return:~1%"
+			) else (
+				set "%~1=%return%"
+			)
+			exit /B
+		)
+	
+	goto add_while
+	
+			
 
 :strlen <String>%1
 setlocal EnableDelayedExpansion
@@ -160,6 +230,8 @@ setlocal EnableDelayedExpansion
         )
     )
 endlocal & exit /b %len%
+
+
 
 
 :: Splits the String representation of a number in its parts
