@@ -1,18 +1,9 @@
+@setlocal enableDelayedExpansion
+@echo|find /i "(on)">nul && (set "_echoState=on") || (set "_echoState=off")
 @echo off
+
 	:: Fetch and decode parameters:
-	setlocal enableDelayedExpansion
-	
-	
-	::TESTING::::::::::::::::::::::::
-	REM :test
-	REM set /p o1=
-	REM set /p o2=
-	REM call :add x = %o1% + %o2%
-	REM echo.%x%
-	REM goto test
-	:::::::::::::::::::::::::::::::::
-	
-	
+
 	if "%~4"=="" (
 		echo.ERROR. Missing parameter^(s^).
 		exit /b 4
@@ -361,8 +352,9 @@ exit /b
 	call :optimize @return
 	
 	echo.%@return%
-	endlocal &(
+	echo %_echoState%
+	@endlocal &(
 		REM altering variable
 		set "%_variable%=%@return%"
 	)
-exit /B 0
+@exit /B 0
