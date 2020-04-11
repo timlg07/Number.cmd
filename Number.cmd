@@ -62,8 +62,10 @@ exit /b 3
 	:: Now both exponents are equal and the addition can be started:
 	if %_operand1.exponent.integer% EQU %_operand2.exponent.integer% (
 		
-		::TODO:: sign->subtract/add
-		call :add sum = "%_operand1.mantissa.integer:~1%" + "%_operand2.mantissa.integer:~1%"
+		rem //TODO:: sign->subtract/add
+		rem call :add sum = "%_operand1.mantissa.integer:~1%" + "%_operand2.mantissa.integer:~1%"
+		rem latest version:
+		set /a sum = _operand1.mantissa.integer + _operand2.mantissa.integer
 		
 		REM save result
 		set "@return=!sum!E%_operand1.exponent.integer%"
