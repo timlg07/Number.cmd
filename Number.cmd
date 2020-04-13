@@ -59,12 +59,16 @@ exit /b 3
 		set /a _operand2.exponent.integer -= delta
 	)
 
-	:: Now both exponents are equal and the addition can be started:
+	REM Now both exponents are equal and the addition can be started.
 	
-	rem //TODO:: sign->subtract/add
-	rem call :add sum = "%_operand1.mantissa.integer:~1%" + "%_operand2.mantissa.integer:~1%"
-	rem latest version:
-	set /a sum = _operand1.mantissa.integer + _operand2.mantissa.integer
+	REM Handle all 2^2=4 sign combinations:
+	set "signCombination=[%_operand1.mantissa.integer:~0,1%][%_operand2.mantissa.integer:~0,1%]"
+	if "%signCombination%"=="[+][+]" (
+		call :add sum = "%_operand1.mantissa.integer:~1%" + "%_operand2.mantissa.integer:~1%"
+	) else (
+		rem old version:
+		set /a sum = _operand1.mantissa.integer + _operand2.mantissa.integer
+	)
 	
 	REM save result
 	set "@return=!sum!E%_operand1.exponent.integer%"
