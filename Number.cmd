@@ -2,8 +2,7 @@
 @echo|find /i "(on)">nul && (set "_echoState=on") || (set "_echoState=off")
 @echo off
 
-	:: Fetch and decode parameters:
-
+:main
 	if "%~4"=="" (
 		echo.ERROR. Missing parameter^(s^).
 		exit /b 4
@@ -63,16 +62,27 @@ exit /b 3
 	
 	REM Handle all 2^2=4 sign combinations:
 	set "signCombination=[%_operand1.mantissa.integer:~0,1%][%_operand2.mantissa.integer:~0,1%]"
+	
 	if "%signCombination%"=="[+][+]" (
 		call :add sum = "%_operand1.mantissa.integer:~1%" + "%_operand2.mantissa.integer:~1%"
-	) else (
+	)
+	
 	if "%signCombination%"=="[-][-]" (
 		call :add sum = "%_operand1.mantissa.integer:~1%" + "%_operand2.mantissa.integer:~1%"
 		set "sum=-!sum!"
-	) else (
-		rem old version:
-		set /a sum = _operand1.mantissa.integer + _operand2.mantissa.integer
-	))
+	)
+	
+	if "%signCombination%"=="[+][-]" (
+		call :sub sum = "%_operand1.mantissa.integer:~1%" - "%_operand2.mantissa.integer:~1%"
+	)
+	
+	if "%signCombination%"=="[-][+]" (
+		call :sub sum = "%_operand2.mantissa.integer:~1%" - "%_operand1.mantissa.integer:~1%"
+	)
+	
+	rem old version:
+	set /a sum_old = _operand1.mantissa.integer + _operand2.mantissa.integer
+	set sum
 	
 	REM save result
 	set "@return=!sum!E%_operand1.exponent.integer%"
@@ -203,20 +213,76 @@ goto Finish
 		set "return=%current%%return%"
 		set /a index += 1
 		
-		REM exit condition of the do-while-loop
-		if %index% GTR %maxIndex% endlocal &(
-			REM if the first digit is zero, it gets cut off
-			if %return:~0,1% EQU 0 (
-				set "%~1=%return:~1%"
-			) else (
-				set "%~1=%return%"
-			)
-			exit /B
+
+	if %index% LEQ %maxIndex% goto add_while
+
+endlocal & (
+	REM if the first digit is zero, it gets cut off
+	if %return:~0,1% EQU 0 (
+		set "%~1=%return:~1%"
+	) else (
+		set "%~1=%return%"
+	)
+)
+exit /B
+	
+
+
+
+
+:sub <VarName>%1 = <UnsignedBigInteger>%2 - <UnsignedBigInteger>%4
+	setlocal EnableDelayedExpansion
+		set /a carry  = 0
+		set /a index  = 1
+		
+		set "return="
+		set "op1=%~2"
+		set "op2=%~4"
+		
+		call :strlen %2
+		set /a "op1.len=%errorlevel%"
+		call :strlen %4
+		set /a "op2.len=%errorlevel%"
+		
+		REM exit condition for the loop: if index has reached
+		REM Math.max( operand1.length, operand2.length ) + 1
+		REM (+1 because of the last carry)
+		if %op1.len% GEQ %op2.len% (
+			set /a maxIndex = op1.len + 1
+		) else (
+			set /a maxIndex = op2.len + 1
 		)
+		
+	:sub_while
 	
-	goto add_while
+		REM The current digit is calculated by:
+		REM operand1[index] - operand2[index] - carry.
+		
+		set /a current = -carry
+		set /a carry = 0
+		
+		REM If the number has less digits than the current index, it gets ignored.
+		if %op1.len% GEQ %index% set /a current += !op1:~-%index%,1!
+		if %op2.len% GEQ %index% set /a current -= !op2:~-%index%,1!
+		
+		REM setting the carry:
+		if %current% LSS 0 (
+			set /a carry = 1
+			set /a current += 10
+		)
+		
+		REM adding the current digit:
+		set "return=%current%%return%"
+		set /a index += 1
+		
+	if %index% LEQ %maxIndex% goto sub_while
+
+endlocal & set "%~1=%return%"
+exit /B
 	
-			
+
+	
+
 
 :strlen <String>%1
 setlocal EnableDelayedExpansion
