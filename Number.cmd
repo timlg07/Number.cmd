@@ -80,10 +80,6 @@ exit /b 3
 		call :sub sum = "%_operand2.mantissa.integer:~1%" - "%_operand1.mantissa.integer:~1%"
 	)
 	
-	rem old version:
-	set /a sum_old = _operand1.mantissa.integer + _operand2.mantissa.integer
-	set sum
-	
 	REM save result
 	set "@return=!sum!E%_operand1.exponent.integer%"
 
@@ -215,15 +211,11 @@ goto Finish
 		
 
 	if %index% LEQ %maxIndex% goto add_while
-
-endlocal & (
+	
 	REM if the first digit is zero, it gets cut off
-	if %return:~0,1% EQU 0 (
-		set "%~1=%return:~1%"
-	) else (
-		set "%~1=%return%"
-	)
-)
+	call :removeLeadingZeros return
+
+endlocal & set "%~1=%return%"
 exit /B
 	
 
@@ -232,6 +224,7 @@ exit /B
 
 :sub <VarName>%1 = <UnsignedBigInteger>%2 - <UnsignedBigInteger>%4
 	setlocal EnableDelayedExpansion
+	
 		set /a carry  = 0
 		set /a index  = 1
 		
@@ -276,8 +269,27 @@ exit /B
 		set /a index += 1
 		
 	if %index% LEQ %maxIndex% goto sub_while
+	
+	:handleNegative
+		if %carry% equ 1 (
+			set "invbase=1"
+			for /L %%i in (1 1 %maxIndex%) do (
+				set "invbase=!invbase!0"
+			)
+			call :sub return = "!invbase!" - "%return%"
+			call :removeLeadingZeros return
+			set "return=-!return!"
+		)
+	
 
-endlocal & set "%~1=%return%"
+endlocal & (
+	REM if the first digit is zero, it gets cut off
+	if %return:~0,1% EQU 0 (
+		set "%~1=%return:~1%"
+	) else (
+		set "%~1=%return%"
+	)
+)
 exit /B
 	
 
@@ -296,6 +308,17 @@ setlocal EnableDelayedExpansion
     )
 endlocal & exit /b %len%
 
+
+:removeLeadingZeros <Variable>%1
+setlocal EnableDelayedExpansion
+	set "s=!%~1!"
+	:removeLeadingZeros_loop
+		if "%s:~0,1%"=="0" (
+			set "s=%s:~1%"
+			goto removeLeadingZeros_loop
+		)
+endlocal & set "%~1=%s%"
+exit /b
 
 
 
