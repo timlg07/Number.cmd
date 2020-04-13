@@ -1,0 +1,6 @@
+[~] Implement own algorithms for:
+    (X) addition
+    (X) subtraction
+    ( ) multiplication
+    ( ) division
+[ ] Make seperate function for pure number (with exponent=0) addition and use it everywhere.

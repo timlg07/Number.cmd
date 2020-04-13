@@ -1,2 +1,0 @@
-1) round number, if too high
-2) implement own addition, subtraction, multiplication & division algorithms
