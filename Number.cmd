@@ -212,8 +212,6 @@ goto Finish
 
 	if %index% LEQ %maxIndex% goto add_while
 	
-	REM if the first digit is zero, it gets cut off
-	call :removeLeadingZeros return
 
 endlocal & set "%~1=%return%"
 exit /B
@@ -277,19 +275,10 @@ exit /B
 				set "invbase=!invbase!0"
 			)
 			call :sub return = "!invbase!" - "%return%"
-			call :removeLeadingZeros return
 			set "return=-!return!"
 		)
-	
 
-endlocal & (
-	REM if the first digit is zero, it gets cut off
-	if %return:~0,1% EQU 0 (
-		set "%~1=%return:~1%"
-	) else (
-		set "%~1=%return%"
-	)
-)
+endlocal & set "%~1=%return%"
 exit /B
 	
 
@@ -307,18 +296,6 @@ setlocal EnableDelayedExpansion
         )
     )
 endlocal & exit /b %len%
-
-
-:removeLeadingZeros <Variable>%1
-setlocal EnableDelayedExpansion
-	set "s=!%~1!"
-	:removeLeadingZeros_loop
-		if "%s:~0,1%"=="0" (
-			set "s=%s:~1%"
-			goto removeLeadingZeros_loop
-		)
-endlocal & set "%~1=%s%"
-exit /b
 
 
 
@@ -435,6 +412,12 @@ exit /b 0
 		if "%_exponent:~0,1%" NEQ "+" (
 			set "_exponent=+%_exponent%"
 		)))
+		
+	:removeLeadingZeros
+		if "%_mantissa:~1,1%"=="0" (
+			set "_mantissa=%_mantissa:~0,1%%_mantissa:~2%"
+			goto removeLeadingZeros
+		)
 	
 	:concatenate
 		REM combines the number again
