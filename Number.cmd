@@ -66,9 +66,13 @@ exit /b 3
 	if "%signCombination%"=="[+][+]" (
 		call :add sum = "%_operand1.mantissa.integer:~1%" + "%_operand2.mantissa.integer:~1%"
 	) else (
+	if "%signCombination%"=="[-][-]" (
+		call :add sum = "%_operand1.mantissa.integer:~1%" + "%_operand2.mantissa.integer:~1%"
+		set "sum=-!sum!"
+	) else (
 		rem old version:
 		set /a sum = _operand1.mantissa.integer + _operand2.mantissa.integer
-	)
+	))
 	
 	REM save result
 	set "@return=!sum!E%_operand1.exponent.integer%"
@@ -154,7 +158,7 @@ goto Finish
 
 
 
-:add <VarName>%1 = <BigInteger>%2 + <BigInteger>%4
+:add <VarName>%1 = <UnsignedBigInteger>%2 + <UnsignedBigInteger>%4
 	setlocal EnableDelayedExpansion
 		set /a carry  = 0
 		set /a index  = 1
