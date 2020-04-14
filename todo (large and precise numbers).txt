@@ -3,4 +3,4 @@
     (X) subtraction
     ( ) multiplication
     ( ) division
-[ ] Make seperate function for pure number (with exponent=0) addition and use it everywhere.
+[~] Make seperate function for pure number (with exponent=0) addition and use it everywhere.

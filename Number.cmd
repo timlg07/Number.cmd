@@ -59,26 +59,7 @@ exit /b 3
 	)
 
 	REM Now both exponents are equal and the addition can be started.
-	
-	REM Handle all 2^2=4 sign combinations:
-	set "signCombination=[%_operand1.mantissa.integer:~0,1%][%_operand2.mantissa.integer:~0,1%]"
-	
-	if "%signCombination%"=="[+][+]" (
-		call :add sum = "%_operand1.mantissa.integer:~1%" + "%_operand2.mantissa.integer:~1%"
-	)
-	
-	if "%signCombination%"=="[-][-]" (
-		call :add sum = "%_operand1.mantissa.integer:~1%" + "%_operand2.mantissa.integer:~1%"
-		set "sum=-!sum!"
-	)
-	
-	if "%signCombination%"=="[+][-]" (
-		call :sub sum = "%_operand1.mantissa.integer:~1%" - "%_operand2.mantissa.integer:~1%"
-	)
-	
-	if "%signCombination%"=="[-][+]" (
-		call :sub sum = "%_operand2.mantissa.integer:~1%" - "%_operand1.mantissa.integer:~1%"
-	)
+	call :signedAdd sum = %_operand1.mantissa.integer% + %_operand2.mantissa.integer%
 	
 	REM save result
 	set "@return=!sum!E%_operand1.exponent.integer%"
@@ -164,7 +145,38 @@ goto Finish
 
 
 
-:add <VarName>%1 = <UnsignedBigInteger>%2 + <UnsignedBigInteger>%4
+:signedAdd <VarName>%1 = <SignedBigInteger>%2 + <SignedBigInteger>%4
+	setlocal EnableDelayedExpansion
+
+		set "a=%2"
+		set "b=%4"
+		
+		REM Handle all 2^2=4 sign combinations:
+		set "signCombination=[%a:~0,1%][%b:~0,1%]"
+		
+		if "%signCombination%"=="[+][+]" (
+			call :unsignedAdd sum = "%a:~1%" + "%b:~1%"
+		)
+		
+		if "%signCombination%"=="[-][-]" (
+			call :unsignedAdd sum = "%a:~1%" + "%b:~1%"
+			set "sum=-!sum!"
+		)
+		
+		if "%signCombination%"=="[+][-]" (
+			call :unsignedSub sum = "%a:~1%" - "%b:~1%"
+		)
+		
+		if "%signCombination%"=="[-][+]" (
+			call :unsignedSub sum = "%b:~1%" - "%a:~1%"
+		)
+		
+	endlocal & set "%1=%sum%"
+exit /b
+
+
+
+:unsignedAdd <VarName>%1 = <UnsignedBigInteger>%2 + <UnsignedBigInteger>%4
 	setlocal EnableDelayedExpansion
 		set /a carry  = 0
 		set /a index  = 1
@@ -187,7 +199,7 @@ goto Finish
 			set /a maxIndex = op2.len + 1
 		)
 		
-	:add_while
+	:unsignedAdd_while
 	
 		REM The current digit is calculated by:
 		REM operand1[index] + operand2[index] + carry.
@@ -210,7 +222,7 @@ goto Finish
 		set /a index += 1
 		
 
-	if %index% LEQ %maxIndex% goto add_while
+	if %index% LEQ %maxIndex% goto unsignedAdd_while
 	
 
 endlocal & set "%~1=%return%"
@@ -220,7 +232,7 @@ exit /B
 
 
 
-:sub <VarName>%1 = <UnsignedBigInteger>%2 - <UnsignedBigInteger>%4
+:unsignedSub <VarName>%1 = <UnsignedBigInteger>%2 - <UnsignedBigInteger>%4
 	setlocal EnableDelayedExpansion
 	
 		set /a carry  = 0
@@ -244,7 +256,7 @@ exit /B
 			set /a maxIndex = op2.len + 1
 		)
 		
-	:sub_while
+	:unsignedSub_while
 	
 		REM The current digit is calculated by:
 		REM operand1[index] - operand2[index] - carry.
@@ -266,7 +278,7 @@ exit /B
 		set "return=%current%%return%"
 		set /a index += 1
 		
-	if %index% LEQ %maxIndex% goto sub_while
+	if %index% LEQ %maxIndex% goto unsignedSub_while
 	
 	:handleNegative
 		if %carry% equ 1 (
@@ -274,7 +286,7 @@ exit /B
 			for /L %%i in (1 1 %maxIndex%) do (
 				set "invbase=!invbase!0"
 			)
-			call :sub return = "!invbase!" - "%return%"
+			call :unsignedSub return = "!invbase!" - "%return%"
 			set "return=-!return!"
 		)
 
