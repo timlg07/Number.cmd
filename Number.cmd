@@ -350,10 +350,10 @@ endlocal & exit /b %len%
 	)
 	
 	REM if only E^x is given the mantissa is 1; this is needed here so the for is executed in this case, too
-	if "!%~1:~0,1!"=="E"  set "%~1=+1!%~1!"
+	if /i "!%~1:~0,1!"=="E"  set "%~1=+1!%~1!"
 	
 	REM splits the number up and sets the variables
-	for /F "delims=E tokens=1,2" %%D in ("!%~1!") do (
+	for /F "delims=eE tokens=1,2" %%D in ("!%~1!") do (
 	
 		REM define mantissa
 		set "%~1.mantissa.integer=%%D"
