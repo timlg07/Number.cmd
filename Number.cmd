@@ -92,10 +92,10 @@ goto Addition
 	REM add the exponents, because:
 	REM a^r * a^s <=> a^(r+s)
 	REM a = 10; r = operand1.exponent; s = operand2.exponent;
-	call :signedAdd _exponent = %_operand1.exponent.integer% + %_operand2.exponent.integer%
+	call :signedAdd _exponent = "%_operand1.exponent.integer%" + "%_operand2.exponent.integer%"
 	REM multiply the mantissas, because:
 	REM m_1 * 10^r  *  m_2 * 10^s <=> m_1 * m_2  *  10^r * 10^s
-	set /a _mantissa = _operand1.mantissa.integer * _operand2.mantissa.integer
+	call :signedMul _mantissa = "%_operand1.mantissa.integer%" * "%_operand2.mantissa.integer%"
 	REM return both
 	set "@return=%_mantissa%E%_exponent%"
 
@@ -297,7 +297,29 @@ exit /B
 exit /B
 	
 
-	
+:signedMul <VarName>%1 = <SignedBigInteger>%2 * <SignedBigInteger>%4
+	setlocal EnableDelayedExpansion
+
+		set "a=%~2"
+		set "b=%~4"
+		
+		echo.%a%|findstr "+ -">nul||set "a=+%a%"
+		echo.%b%|findstr "+ -">nul||set "b=+%b%"
+		
+		call :unsignedMul result = "%a:~1%" * "%b:~1%"
+		
+	endlocal & (
+		if "%a:~0,1%"=="%b:~0,1%" (
+			set "%~1=+%result%"
+		) else (
+			set "%~1=-%result%"
+		)
+	)
+exit /b
+
+:unsignedMul <VarName>%1 = <UnsignedBigInteger>%2 * <UnsignedBigInteger>%4
+set /a %~1 = %~2 * %~4
+exit /b
 
 
 :strlen <String>%1
