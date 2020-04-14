@@ -152,8 +152,8 @@ goto Finish
 		set "a=%~2"
 		set "b=%~4"
 		
-		echo.%a%|findstr "+ -"||set "a=+%a%"
-		echo.%b%|findstr "+ -"||set "b=+%b%"
+		echo.%a%|findstr "+ -">nul||set "a=+%a%"
+		echo.%b%|findstr "+ -">nul||set "b=+%b%"
 		
 		REM Handle all 2^2=4 sign combinations:
 		set "signCombination=[%a:~0,1%][%b:~0,1%]"
@@ -174,8 +174,6 @@ goto Finish
 		if "%signCombination%"=="[-][+]" (
 			call :unsignedSub sum = "%b:~1%" - "%a:~1%"
 		)
-		
-		echo %a% + %b% = %sum%
 
 	endlocal & set "%~1=%sum%"
 exit /b
@@ -405,6 +403,10 @@ exit /b 0
 			set "@return=0E0"
 			exit /b 0
 		)
+		REM deal with exponent consisting of multiple zeros:
+		if "%_exponent:0=%"=="" (
+			set "_exponent=0"
+		)
 	
 	:removeTrailingZeros
 		REM removes the last zero and increases the exponent
@@ -430,10 +432,18 @@ exit /b 0
 			set "_exponent=+%_exponent%"
 		)))
 		
-	:removeLeadingZeros
+	:removeLeadingZerosFromMantissa
 		if "%_mantissa:~1,1%"=="0" (
 			set "_mantissa=%_mantissa:~0,1%%_mantissa:~2%"
-			goto removeLeadingZeros
+			goto removeLeadingZerosFromMantissa
+		)
+		
+	:removeLeadingZerosFromExponent
+		if "%_exponent:0=%" NEQ "" (
+			if "%_exponent:~1,1%"=="0" (
+				set "_exponent=%_exponent:~0,1%%_exponent:~2%"
+				goto removeLeadingZerosFromExponent
+			)
 		)
 	
 	:concatenate
