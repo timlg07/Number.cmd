@@ -318,7 +318,38 @@ exit /B
 exit /b
 
 :unsignedMul <VarName>%1 = <UnsignedBigInteger>%2 * <UnsignedBigInteger>%4
-set /a %~1 = %~2 * %~4
+	setlocal EnableDelayedExpansion
+		set "result="
+		set "op1=%~2"
+		set "op2=%~4"
+		set "a_zero="
+		
+		call :strlen %2
+		set /a "op1.lastIndex=%errorlevel% - 1"
+		call :strlen %4
+		set /a "op2.lastIndex=%errorlevel% - 1"
+		
+		for /L %%i in (%op1.lastIndex% -1 0) do (
+			set "current="
+			set "carryj=0"
+			
+			for /L %%j in (%op2.lastIndex% -1 0) do (
+				set /a "currentj=(!op1:~%%i,1! * !op2:~%%j,1!) + !carryj!"
+				
+				set "carryj=0"
+				if !currentj! GEQ 10 (
+					set "carryj=!currentj:~0,1!"
+					set "currentj=!currentj:~1!"
+				)
+				
+				set "current=!currentj!!current!"
+			)
+			
+			call :unsignedAdd result = "!result!" + "!carryj!!current!!a_zero!"
+			set "a_zero=!a_zero!0"
+		)
+		
+	endlocal & set "%~1=%result%"
 exit /b
 
 
