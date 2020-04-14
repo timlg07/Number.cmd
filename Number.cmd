@@ -2,6 +2,7 @@
 @echo|find /i "(on)">nul && (set "_echoState=on") || (set "_echoState=off")
 @echo off
 
+
 :main
 	if "%~4"=="" (
 		echo.ERROR. Missing parameter^(s^).
@@ -59,7 +60,7 @@ exit /b 3
 	)
 
 	REM Now both exponents are equal and the addition can be started.
-	call :signedAdd sum = %_operand1.mantissa.integer% + %_operand2.mantissa.integer%
+	call :signedAdd sum = "%_operand1.mantissa.integer%" + "%_operand2.mantissa.integer%"
 	
 	REM save result
 	set "@return=!sum!E%_operand1.exponent.integer%"
@@ -91,7 +92,7 @@ goto Addition
 	REM add the exponents, because:
 	REM a^r * a^s <=> a^(r+s)
 	REM a = 10; r = operand1.exponent; s = operand2.exponent;
-	set /a _exponent = _operand1.exponent.integer + _operand2.exponent.integer
+	call :signedAdd _exponent = %_operand1.exponent.integer% + %_operand2.exponent.integer%
 	REM multiply the mantissas, because:
 	REM m_1 * 10^r  *  m_2 * 10^s <=> m_1 * m_2  *  10^r * 10^s
 	set /a _mantissa = _operand1.mantissa.integer * _operand2.mantissa.integer
@@ -148,8 +149,11 @@ goto Finish
 :signedAdd <VarName>%1 = <SignedBigInteger>%2 + <SignedBigInteger>%4
 	setlocal EnableDelayedExpansion
 
-		set "a=%2"
-		set "b=%4"
+		set "a=%~2"
+		set "b=%~4"
+		
+		echo.%a%|findstr "+ -"||set "a=+%a%"
+		echo.%b%|findstr "+ -"||set "b=+%b%"
 		
 		REM Handle all 2^2=4 sign combinations:
 		set "signCombination=[%a:~0,1%][%b:~0,1%]"
@@ -171,7 +175,9 @@ goto Finish
 			call :unsignedSub sum = "%b:~1%" - "%a:~1%"
 		)
 		
-	endlocal & set "%1=%sum%"
+		echo %a% + %b% = %sum%
+
+	endlocal & set "%~1=%sum%"
 exit /b
 
 
@@ -199,33 +205,32 @@ exit /b
 			set /a maxIndex = op2.len + 1
 		)
 		
-	:unsignedAdd_while
-	
-		REM The current digit is calculated by:
-		REM operand1[index] + operand2[index] + carry.
+		:unsignedAdd_while
 		
-		set /a current = carry
-		set /a carry = 0
-		
-		REM If the number has less digits than the current index, it gets ignored.
-		if %op1.len% GEQ %index% set /a current += !op1:~-%index%,1!
-		if %op2.len% GEQ %index% set /a current += !op2:~-%index%,1!
-		
-		REM setting the carry:
-		if %current% GEQ 10 (
-			set /a carry = %current:~0,1%
-			set /a current = %current:~1%
-		)
-		
-		REM adding the current digit:
-		set "return=%current%%return%"
-		set /a index += 1
-		
+			REM The current digit is calculated by:
+			REM operand1[index] + operand2[index] + carry.
+			
+			set /a current = carry
+			set /a carry = 0
+			
+			REM If the number has less digits than the current index, it gets ignored.
+			if %op1.len% GEQ %index% set /a current += !op1:~-%index%,1!
+			if %op2.len% GEQ %index% set /a current += !op2:~-%index%,1!
+			
+			REM setting the carry:
+			if %current% GEQ 10 (
+				set /a carry = %current:~0,1%
+				set /a current = %current:~1%
+			)
+			
+			REM adding the current digit:
+			set "return=%current%%return%"
+			set /a index += 1
+			
 
-	if %index% LEQ %maxIndex% goto unsignedAdd_while
+		if %index% LEQ %maxIndex% goto unsignedAdd_while
 	
-
-endlocal & set "%~1=%return%"
+	endlocal & set "%~1=%return%"
 exit /B
 	
 
@@ -256,41 +261,41 @@ exit /B
 			set /a maxIndex = op2.len + 1
 		)
 		
-	:unsignedSub_while
-	
-		REM The current digit is calculated by:
-		REM operand1[index] - operand2[index] - carry.
+		:unsignedSub_while
 		
-		set /a current = -carry
-		set /a carry = 0
-		
-		REM If the number has less digits than the current index, it gets ignored.
-		if %op1.len% GEQ %index% set /a current += !op1:~-%index%,1!
-		if %op2.len% GEQ %index% set /a current -= !op2:~-%index%,1!
-		
-		REM setting the carry:
-		if %current% LSS 0 (
-			set /a carry = 1
-			set /a current += 10
-		)
-		
-		REM adding the current digit:
-		set "return=%current%%return%"
-		set /a index += 1
-		
-	if %index% LEQ %maxIndex% goto unsignedSub_while
-	
-	:handleNegative
-		if %carry% equ 1 (
-			set "invbase=1"
-			for /L %%i in (1 1 %maxIndex%) do (
-				set "invbase=!invbase!0"
+			REM The current digit is calculated by:
+			REM operand1[index] - operand2[index] - carry.
+			
+			set /a current = -carry
+			set /a carry = 0
+			
+			REM If the number has less digits than the current index, it gets ignored.
+			if %op1.len% GEQ %index% set /a current += !op1:~-%index%,1!
+			if %op2.len% GEQ %index% set /a current -= !op2:~-%index%,1!
+			
+			REM setting the carry:
+			if %current% LSS 0 (
+				set /a carry = 1
+				set /a current += 10
 			)
-			call :unsignedSub return = "!invbase!" - "%return%"
-			set "return=-!return!"
-		)
+			
+			REM adding the current digit:
+			set "return=%current%%return%"
+			set /a index += 1
+			
+		if %index% LEQ %maxIndex% goto unsignedSub_while
+		
+		:handleNegative
+			if %carry% equ 1 (
+				set "invbase=1"
+				for /L %%i in (1 1 %maxIndex%) do (
+					set "invbase=!invbase!0"
+				)
+				call :unsignedSub return = "!invbase!" - "%return%"
+				set "return=-!return!"
+			)
 
-endlocal & set "%~1=%return%"
+	endlocal & set "%~1=%return%"
 exit /B
 	
 
