@@ -2,5 +2,5 @@
     (X) addition
     (X) subtraction
     (X) multiplication
-    ( ) division
+    (~) division
 [X] Make seperate function for pure number (with exponent=0) addition and use it everywhere.

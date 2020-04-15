@@ -134,9 +134,14 @@ goto Finish
 	REM subtract the exponents, because:
 	REM a^r / a^s <=> a^(r-s)
 	REM a = 10; r = operand1.exponent; s = operand2.exponent;
-	set /a _exponent = _operand1.exponent.integer - _operand2.exponent.integer
+	REM i) invert the second exponents sign
+	set "_newExponentSign=+"
+	if "%_operand2.exponent.integer:~0,1%"=="+" set "_newExponentSign=-"
+	set "_operand2.exponent.integer=%_newExponentSign%%_operand2.exponent.integer:~1%"
+	REM ii) add the exponents
+	call :signedAdd _exponent = "%_operand1.exponent.integer%" + "%_operand2.exponent.integer%"
 	REM lower the exponent for each added decimal place
-	set /a _exponent -= _decP
+	call :signedAdd _exponent = "%_exponent%" + "-%_decP%"
 	REM set sign
 	set /a @return *= _sign
 	REM return
