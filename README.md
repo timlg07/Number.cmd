@@ -1,5 +1,5 @@
 # Number.cmd
-A new data type for Batch, that can represent large & floating-point numbers and can calculate with those.
+A new data type for Batch, that can represent large and floating-point numbers and enables calculation with those.
 
 # Syntax
 ```
