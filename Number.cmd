@@ -1,5 +1,5 @@
 @setlocal enableDelayedExpansion
-@echo|find /i "(on)">nul && (set "_echoState=on") || (set "_echoState=off")
+@call :storeEchoState
 @echo off
 
 
@@ -371,6 +371,16 @@ setlocal EnableDelayedExpansion
 endlocal & exit /b %len%
 
 
+:storeEchoState
+	@echo > "%tmp%\number-cmd-echo-state"
+	@find /i "(on)" "%tmp%\number-cmd-echo-state" >nul && (
+		set "_echoState=on"
+	) || (
+		set "_echoState=off"
+	)
+	@del "%tmp%\number-cmd-echo-state"
+@exit /b
+
 
 :: Splits the String representation of a number in its parts
 :: @param {String} variable name
@@ -515,7 +525,9 @@ exit /b
 	call :optimize @return
 	
 	echo.%@return%
+	REM restore echo state
 	echo %_echoState%
+	
 	@endlocal &(
 		REM altering variable
 		set "%_variable%=%@return%"
