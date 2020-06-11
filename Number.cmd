@@ -373,12 +373,12 @@ endlocal & exit /b %len%
 
 :storeEchoState
 	@echo > "%tmp%\number-cmd-echo-state"
-	@find /i "(on)" "%tmp%\number-cmd-echo-state" >nul && (
+	@find /i "(on)" "%tmp%\number-cmd-echo-state" >nul 2>&1 && (
 		set "_echoState=on"
 	) || (
 		set "_echoState=off"
 	)
-	@del "%tmp%\number-cmd-echo-state"
+	@del "%tmp%\number-cmd-echo-state" 2>nul
 @exit /b
 
 
@@ -524,7 +524,9 @@ exit /b
 :Finish
 	call :optimize @return
 	
-	echo.%@return%
+	REM output result only when requested by '#' as variable name
+	if "%_variable%"=="#" echo.%@return%
+	
 	REM restore echo state
 	echo %_echoState%
 	
