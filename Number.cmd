@@ -117,7 +117,7 @@ goto Finish
 	REM <<the following uncommented code is mainly from Batch_Tools/3-2-division.cmd>>
 	set /a _int = _operand1.mantissa.integer / _operand2.mantissa.integer
 	set "@return=%_int%"
-	if %@return%==0 set "@return="
+	if %@return% equ 0 set "@return="
 	set /a _remainder = _operand1.mantissa.integer - ( _int * _operand2.mantissa.integer )
 	set /a _decP = 0
 	:div_LOOP
@@ -187,8 +187,8 @@ exit /b
 
 :unsignedAdd <VarName>%1 = <UnsignedBigInteger>%2 + <UnsignedBigInteger>%4
 	setlocal EnableDelayedExpansion
-		set /a carry  = 0
-		set /a index  = 1
+		set /a carry = 0
+		set /a index = 1
 		
 		set "return="
 		set "op1=%~2"
@@ -222,8 +222,8 @@ exit /b
 			
 			REM setting the carry:
 			if %current% GEQ 10 (
-				set /a carry = %current:~0,1%
-				set /a current = %current:~1%
+				set /a carry = 1
+				set /a current -= 10
 			)
 			
 			REM adding the current digit:
@@ -243,8 +243,8 @@ exit /B
 :unsignedSub <VarName>%1 = <UnsignedBigInteger>%2 - <UnsignedBigInteger>%4
 	setlocal EnableDelayedExpansion
 	
-		set /a carry  = 0
-		set /a index  = 1
+		set /a carry = 0
+		set /a index = 1
 		
 		set "return="
 		set "op1=%~2"
@@ -329,6 +329,11 @@ exit /b
 		set "op2=%~4"
 		set "a_zero="
 		
+		if %op1% equ 0 endlocal & set "%~1=0" & exit /b
+		if %op2% equ 0 endlocal & set "%~1=0" & exit /b
+		if %op1% equ 1 endlocal & set "%~1=%op2%" & exit /b
+		if %op2% equ 1 endlocal & set "%~1=%op1%" & exit /b
+		
 		call :strlen %2
 		set /a "op1.lastIndex=%errorlevel% - 1"
 		call :strlen %4
@@ -405,8 +410,8 @@ endlocal & exit /b %len%
 		set "%~1.mantissa.integer=%%D"
 		
 		REM if only E^x is given the mantissa is 1
-		if "!%~1:~0,2!"=="+E" set "%~1.mantissa.integer=+1"
-		if "!%~1:~0,2!"=="-E" set "%~1.mantissa.integer=-1"
+		if /i "!%~1:~0,2!"=="+E" set "%~1.mantissa.integer=+1"
+		if /i "!%~1:~0,2!"=="-E" set "%~1.mantissa.integer=-1"
 		
 		REM if no sign is given and the number is not zero, it's assumed to be positive
 		if "!%~1.mantissa.integer:~0,1!" NEQ "+"  (
@@ -416,7 +421,9 @@ endlocal & exit /b %len%
 		)))
 		
 		REM check for only zeros
-		if "!%~1.mantissa.integer:0=!"=="" (
+		set "%~1.mantissa.integer.abs=!%~1.mantissa.integer:-=!"
+		set "%~1.mantissa.integer.abs=!%~1.mantissa.integer.abs:+=!"
+		if "!%~1.mantissa.integer.abs:0=!"=="" (
 			set "%~1.zero=true"
 			set "%~1.mantissa.integer=0"
 		) else (
@@ -424,11 +431,10 @@ endlocal & exit /b %len%
 			for /f "tokens=* delims=0" %%n in ("!%~1.mantissa.integer:~1!") do set "%~1.mantissa.integer=!%~1.mantissa.integer:~0,1!%%n"
 		)
 		
-		
 		REM define exponent
 		set "%~1.exponent.integer=%%E"
 		if "%%E"=="" (
-			if "!%~1:~-1!"=="E" (
+			if /i "!%~1:~-1!"=="E" (
 				set "%~1.exponent.integer=1"
 			) else (
 				set "%~1.exponent.integer=0"
@@ -443,7 +449,9 @@ endlocal & exit /b %len%
 		)))
 		
 		REM check for only zeros
-		if "!%~1.exponent.integer:0=!"=="" (
+		set "%~1.exponent.integer.abs=!%~1.exponent.integer:-=!"
+		set "%~1.exponent.integer.abs=!%~1.exponent.integer.abs:+=!"
+		if "!%~1.exponent.integer.abs:0=!"=="" (
 			set "%~1.exponent.zero=true"
 			set "%~1.exponent.integer=0"
 		) else (
@@ -463,16 +471,20 @@ exit /b 0
 		set "_mantissa=%%D"
 		set "_exponent=%%E"
 	)
+	set "_mantissa.abs=%_mantissa:-=%"
+	set "_mantissa.abs=%_mantissa.abs:+=%"
+	set "_exponent.abs=%_exponent:-=%"
+	set "_exponent.abs=%_exponent.abs:+=%"
 	
 	:zeroTreatment
 		REM In case the mantissa is zero, it makes sense if the exponent is also zero.
-		if "%_mantissa:0=%"=="" (
+		if "%_mantissa.abs:0=%"=="" (
 			REM no further optimization needed
 			set "@return=0E0"
 			exit /b 0
 		)
 		REM deal with exponent consisting of multiple zeros:
-		if "%_exponent:0=%"=="" (
+		if "%_exponent.abs:0=%"=="" (
 			set "_exponent=0"
 		)
 	
@@ -486,19 +498,16 @@ exit /b 0
 		)
 	
 	:addPositiveSigns
-		REM if mantissa is not zero and has no sign, it gets a positive sign
-		if "%_mantissa:0=%"   NEQ ""  (
-		if "%_mantissa:~0,1%" NEQ "-" (
-		if "%_mantissa:~0,1%" NEQ "+" (
+		REM if mantissa has no sign, it gets a positive sign
+		if "%_mantissa.abs%"=="%_mantissa%" (
 			set "_mantissa=+%_mantissa%"
-		)))
+		)
 		
 		REM if exponent is not zero and has no sign, it gets a positive sign
-		if "%_exponent:0=%"   NEQ ""  (
-		if "%_exponent:~0,1%" NEQ "-" (
-		if "%_exponent:~0,1%" NEQ "+" (
+		if not "%_exponent%"=="0"  (
+		if "%_exponent.abs%"=="%_exponent%" (
 			set "_exponent=+%_exponent%"
-		)))
+		))
 		
 	:removeLeadingZerosFromMantissa
 		if "%_mantissa:~1,1%"=="0" (
@@ -507,7 +516,7 @@ exit /b 0
 		)
 		
 	:removeLeadingZerosFromExponent
-		if "%_exponent:0=%" NEQ "" (
+		if not "%_exponent%"=="0" (
 			if "%_exponent:~1,1%"=="0" (
 				set "_exponent=%_exponent:~0,1%%_exponent:~2%"
 				goto removeLeadingZerosFromExponent
