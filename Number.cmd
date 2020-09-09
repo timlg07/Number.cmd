@@ -467,67 +467,66 @@ exit /b 0
 :: Optimizes the String representation of a number
 :: @param {String} variable name
 :optimize <String>%1
-    REM splits up the number
-    for /F "delims=E tokens=1,2" %%D in ("!%~1!") do (
-        set "_mantissa=%%D"
-        set "_exponent=%%E"
-    )
-    set "_mantissa.abs=%_mantissa:-=%"
-    set "_mantissa.abs=%_mantissa.abs:+=%"
-    set "_exponent.abs=%_exponent:-=%"
-    set "_exponent.abs=%_exponent.abs:+=%"
-    
-    :zeroTreatment
-        REM In case the mantissa is zero, it makes sense if the exponent is also zero.
-        if "%_mantissa.abs:0=%"=="" (
-            REM no further optimization needed
-            set "@return=0E0"
-            exit /b 0
-        )
-        REM deal with exponent consisting of multiple zeros:
-        if "%_exponent.abs:0=%"=="" (
-            set "_exponent=0"
-        )
-    
-    :removeTrailingZeros
-        REM removes the last zero and increases the exponent
-        if "%_mantissa:~-1%"=="0" (
-            set /a _exponent += 1
-            set "_mantissa=%_mantissa:~0,-1%"
-            REM next iteration of the do-while-loop, which stops at the first non-zero value
-            goto removeTrailingZeros
-        )
-    
-    :addPositiveSigns
-        REM if mantissa has no sign, it gets a positive sign
-        if "%_mantissa.abs%"=="%_mantissa%" (
-            set "_mantissa=+%_mantissa%"
-        )
-        
-        REM if exponent is not zero and has no sign, it gets a positive sign
-        if not "%_exponent%"=="0"  (
-        if "%_exponent.abs%"=="%_exponent%" (
-            set "_exponent=+%_exponent%"
-        ))
-        
-    :removeLeadingZerosFromMantissa
-        if "%_mantissa:~1,1%"=="0" (
-            set "_mantissa=%_mantissa:~0,1%%_mantissa:~2%"
-            goto removeLeadingZerosFromMantissa
-        )
-        
-    :removeLeadingZerosFromExponent
-        if not "%_exponent%"=="0" (
-            if "%_exponent:~1,1%"=="0" (
-                set "_exponent=%_exponent:~0,1%%_exponent:~2%"
-                goto removeLeadingZerosFromExponent
-            )
-        )
-    
-    :concatenate
-        REM combines the number again
-        set "@return=%_mantissa%E%_exponent%"
-    
+    setlocal EnableDelayedExpansion
+       REM splits up the number
+       for /F "delims=E tokens=1,2" %%D in ("!%~1!") do (
+           set "_mantissa=%%D"
+           set "_exponent=%%E"
+       )
+       set "_mantissa.abs=%_mantissa:-=%"
+       set "_mantissa.abs=%_mantissa.abs:+=%"
+       set "_exponent.abs=%_exponent:-=%"
+       set "_exponent.abs=%_exponent.abs:+=%"
+       
+       :zeroTreatment
+           REM In case the mantissa is zero, it makes sense if the exponent is also zero.
+           if "%_mantissa.abs:0=%"=="" (
+               REM no further optimization needed
+               endlocal & set "%~1=0E0"
+               exit /b 0
+           )
+           REM deal with exponent consisting of multiple zeros:
+           if "%_exponent.abs:0=%"=="" (
+               set "_exponent=0"
+           )
+       
+       :removeTrailingZeros
+           REM removes the last zero and increases the exponent
+           if "%_mantissa:~-1%"=="0" (
+               set /a _exponent += 1
+               set "_mantissa=%_mantissa:~0,-1%"
+               REM next iteration of the do-while-loop, which stops at the first non-zero value
+               goto removeTrailingZeros
+           )
+       
+       :addPositiveSigns
+           REM if mantissa has no sign, it gets a positive sign
+           if "%_mantissa.abs%"=="%_mantissa%" (
+               set "_mantissa=+%_mantissa%"
+           )
+           
+           REM if exponent is not zero and has no sign, it gets a positive sign
+           if not "%_exponent%"=="0"  (
+           if "%_exponent.abs%"=="%_exponent%" (
+               set "_exponent=+%_exponent%"
+           ))
+           
+       :removeLeadingZerosFromMantissa
+           if "%_mantissa:~1,1%"=="0" (
+               set "_mantissa=%_mantissa:~0,1%%_mantissa:~2%"
+               goto removeLeadingZerosFromMantissa
+           )
+           
+       :removeLeadingZerosFromExponent
+           if not "%_exponent%"=="0" (
+               if "%_exponent:~1,1%"=="0" (
+                   set "_exponent=%_exponent:~0,1%%_exponent:~2%"
+                   goto removeLeadingZerosFromExponent
+               )
+           )
+       
+    REM combines the number again
+    endlocal & set "%~1=%_mantissa%E%_exponent%"
 exit /b
 
 
