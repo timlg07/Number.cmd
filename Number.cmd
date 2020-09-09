@@ -157,8 +157,9 @@ goto Finish
         set "a=%~2"
         set "b=%~4"
         
-        echo.%a%|findstr "+ -">nul||set "a=+%a%"
-        echo.%b%|findstr "+ -">nul||set "b=+%b%"
+        REM If no sign is given explicitly, default to "+":
+        if "%a:~0,1%" neq "+" if "%a:~0,1%" neq "-" set "a=+%a%"
+        if "%b:~0,1%" neq "+" if "%b:~0,1%" neq "-" set "b=+%a%"
         
         REM Handle all 2^2=4 sign combinations:
         set "signCombination=[%a:~0,1%][%b:~0,1%]"
