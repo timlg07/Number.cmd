@@ -19,7 +19,6 @@
     call :decode _operand1 || ( echo.ERROR. First operand is not a number ^(NaN^).  & exit /b 1 )
     call :decode _operand2 || ( echo.ERROR. Second operand is not a number ^(NaN^). & exit /b 2 )
 
-
     :: Call the operation function:
     if "%_operator%"=="+" goto Addition
     if "%_operator%"=="-" goto Subtraction
@@ -158,8 +157,8 @@ goto Finish
         set "b=%~4"
         
         REM If no sign is given explicitly, default to "+":
-        if "%a:~0,1%" neq "+" if "%a:~0,1%" neq "-" set "a=+%a%"
-        if "%b:~0,1%" neq "+" if "%b:~0,1%" neq "-" set "b=+%a%"
+        call :forceSigns a
+        call :forceSigns b
         
         REM Handle all 2^2=4 sign combinations:
         set "signCombination=[%a:~0,1%][%b:~0,1%]"
@@ -309,8 +308,8 @@ exit /B
         set "a=%~2"
         set "b=%~4"
         
-        echo.%a%|findstr "+ -">nul||set "a=+%a%"
-        echo.%b%|findstr "+ -">nul||set "b=+%b%"
+        call :forceSigns a
+        call :forceSigns b
         
         call :unsignedMul result = "%a:~1%" * "%b:~1%"
         
