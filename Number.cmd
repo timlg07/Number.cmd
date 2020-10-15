@@ -392,6 +392,12 @@ exit /b
     if "!%~1:0=!" NEQ "" call :forceSigns "%~1"
 exit /b
 
+:: Removes all leading zeros from a signed number while keeping its sign.
+:: The first character of the number has to be the sign.
+:trimLeadingZeros <VarName>%1
+    for /f "tokens=* delims=0" %%n in ("!%~1:~1!") do set "%~1=!%~1:~0,1!%%n"
+exit /b
+
 :storeEchoState
     @echo > "%tmp%\number-cmd-echo-state"
     @find /i "(on)" "%tmp%\number-cmd-echo-state" >nul 2>&1 && (
@@ -439,8 +445,7 @@ exit /b
             set "%~1.zero=true"
             set "%~1.mantissa.integer=0"
         ) else (
-            REM remove leading zeros
-            for /f "tokens=* delims=0" %%n in ("!%~1.mantissa.integer:~1!") do set "%~1.mantissa.integer=!%~1.mantissa.integer:~0,1!%%n"
+            call :trimLeadingZeros "%~1.mantissa.integer"
         )
         
         REM define exponent
@@ -463,8 +468,7 @@ exit /b
             set "%~1.exponent.zero=true"
             set "%~1.exponent.integer=0"
         ) else (
-            REM remove leading zeros
-            for /f "tokens=* delims=0" %%n in ("!%~1.exponent.integer:~1!") do set "%~1.exponent.integer=!%~1.exponent.integer:~0,1!%%n"
+            call :trimLeadingZeros "%~1.exponent.integer"
         )
     )
 exit /b 0
