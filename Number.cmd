@@ -419,6 +419,8 @@ exit /b
         if /i "!%~1:~7!"=="e"  set "%~1=+271828182E-8"
         REM 3.141592653589793238462643383279502884197169399375105820974944 -> INT32
         if /i "!%~1:~7!"=="pi" set "%~1=+314159265E-8"
+        REM 1.618033988749894848204586834365638117720309179805762862135448 -> INT32
+        if /i "!%~1:~7!"=="phi" set "%~1=+161803398E-8"
     )
     
     REM if only E^x is given the mantissa is 1; this is needed here so the for is executed in this case, too
