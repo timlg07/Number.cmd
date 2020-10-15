@@ -376,6 +376,21 @@ setlocal EnableDelayedExpansion
     )
 endlocal & exit /b %len%
 
+:: Adds a plus sign to the given variables value if it has no sign specified.
+:: @param {String} variable name
+:forceSigns <VarName>%1 <Boolean>%2
+    if "!%~1:~0,1!" NEQ "+"  (
+    if "!%~1:~0,1!" NEQ "-"  (
+        set "%~1=+!%~1!"
+    ))
+exit /b
+
+:: Adds a plus sign to the given variables value if it has no sign specified and is not zero.
+:: Does the same as :forceSigns, but does not change the variable if its value is only zero.
+:: @param {String} variable name
+:forceSignsExceptZero <VarName>%1
+    if "!%~1:0=!" NEQ "" call :forceSigns "%~1"
+exit /b
 
 :storeEchoState
     @echo > "%tmp%\number-cmd-echo-state"
@@ -415,11 +430,7 @@ endlocal & exit /b %len%
         if /i "!%~1:~0,2!"=="-E" set "%~1.mantissa.integer=-1"
         
         REM if no sign is given and the number is not zero, it's assumed to be positive
-        if "!%~1.mantissa.integer:~0,1!" NEQ "+"  (
-        if "!%~1.mantissa.integer:~0,1!" NEQ "-"  (
-        if "!%~1.mantissa.integer:0=!" NEQ "" (
-            set "%~1.mantissa.integer=+!%~1.mantissa.integer!"
-        )))
+        call :forceSignsExceptZero "%~1.mantissa.integer"
         
         REM check for only zeros
         set "%~1.mantissa.integer.abs=!%~1.mantissa.integer:-=!"
@@ -443,11 +454,7 @@ endlocal & exit /b %len%
         )
         
         REM if no sign is given and the number is not zero, it's assumed to be positive
-        if "!%~1.exponent.integer:~0,1!" NEQ "+"  (
-        if "!%~1.exponent.integer:~0,1!" NEQ "-"  (
-        if "!%~1.exponent.integer:0=!" NEQ "" (
-            set "%~1.exponent.integer=+!%~1.exponent.integer!"
-        )))
+        call :forceSignsExceptZero "%~1.exponent.integer"
         
         REM check for only zeros
         set "%~1.exponent.integer.abs=!%~1.exponent.integer:-=!"
