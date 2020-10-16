@@ -20,10 +20,10 @@ for /F "usebackq tokens=1* delims==" %%P in ("%~1") do (
     for /F "usebackq" %%R in (`..\Number # %%P`) do (
         for /F "tokens=* delims= " %%E in ("%%Q") do (
             if "%%R"=="%%E" (
-                echo:[+] test passed: %%P = %%E
+                echo:[ ] test passed: %%P = %%E
                 set /a passed += 1
             ) else (
-                echo:[!] test failed: %%P = %%E
+                echo:[!] test failed: %%P; expected: %%E but was: %%R
                 set /a failed += 1
             )
             set /a total += 1
@@ -39,4 +39,4 @@ echo:---   Failed tests: %failed%
 echo.
 
 endlocal
-pause
+pause >nul
