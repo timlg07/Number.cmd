@@ -1,0 +1,3 @@
+@ECHO:RUNNING ALL TESTS IN %CD%
+@FOR %%T IN (%CD%\*.test) DO @ECHO:|TESTER "%%T"
+@PAUSE > NUL
