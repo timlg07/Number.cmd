@@ -512,16 +512,9 @@ exit /b 0
            )
        
        :addPositiveSigns
-           REM if mantissa has no sign, it gets a positive sign
-           if "%_mantissa.abs%"=="%_mantissa%" (
-               set "_mantissa=+%_mantissa%"
-           )
-           
-           REM if exponent is not zero and has no sign, it gets a positive sign
-           if not "%_exponent%"=="0"  (
-           if "%_exponent.abs%"=="%_exponent%" (
-               set "_exponent=+%_exponent%"
-           ))
+           REM if mantissa or exponent is not zero and has no sign, it gets a positive sign:
+           call :forceSignsExceptZero _mantissa
+           call :forceSignsExceptZero _exponent
            
        :removeLeadingZerosFromMantissa
            if "%_mantissa:~1,1%"=="0" (
@@ -530,12 +523,10 @@ exit /b 0
            )
            
        :removeLeadingZerosFromExponent
-           if not "%_exponent%"=="0" (
-               if "%_exponent:~1,1%"=="0" (
-                   set "_exponent=%_exponent:~0,1%%_exponent:~2%"
-                   goto removeLeadingZerosFromExponent
-               )
-           )
+            if "%_exponent:~1,1%"=="0" (
+                set "_exponent=%_exponent:~0,1%%_exponent:~2%"
+                goto removeLeadingZerosFromExponent
+            )
        
     REM combines the number again
     endlocal & set "%~1=%_mantissa%E%_exponent%"
