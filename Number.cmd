@@ -502,15 +502,6 @@ exit /b 0
                set "_exponent=0"
            )
        
-       :removeTrailingZeros
-           REM removes the last zero and increases the exponent
-           if "%_mantissa:~-1%"=="0" (
-               set /a _exponent += 1
-               set "_mantissa=%_mantissa:~0,-1%"
-               REM next iteration of the do-while-loop, which stops at the first non-zero value
-               goto removeTrailingZeros
-           )
-       
        :addPositiveSigns
            REM if mantissa or exponent is not zero and has no sign, it gets a positive sign:
            call :forceSignsExceptZero _mantissa
@@ -527,6 +518,15 @@ exit /b 0
                 set "_exponent=%_exponent:~0,1%%_exponent:~2%"
                 goto removeLeadingZerosFromExponent
             )
+
+       :removeTrailingZeros
+           REM removes the last zero and increases the exponent
+           if "%_mantissa:~-1%"=="0" (
+               set /a _exponent += 1
+               set "_mantissa=%_mantissa:~0,-1%"
+               REM next iteration of the do-while-loop, which stops at the first non-zero value
+               goto removeTrailingZeros
+           )
        
     REM combines the number again
     endlocal & set "%~1=%_mantissa%E%_exponent%"
