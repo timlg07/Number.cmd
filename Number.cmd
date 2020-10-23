@@ -480,53 +480,62 @@ exit /b 0
 :: @param {String} variable name
 :optimize <String>%1
     setlocal EnableDelayedExpansion
-       REM splits up the number
-       for /F "delims=E tokens=1,2" %%D in ("!%~1!") do (
-           set "_mantissa=%%D"
-           set "_exponent=%%E"
-       )
-       set "_mantissa.abs=%_mantissa:-=%"
-       set "_mantissa.abs=%_mantissa.abs:+=%"
-       set "_exponent.abs=%_exponent:-=%"
-       set "_exponent.abs=%_exponent.abs:+=%"
-       
-       :zeroTreatment
-           REM In case the mantissa is zero, it makes sense if the exponent is also zero.
-           if "%_mantissa.abs:0=%"=="" (
-               REM no further optimization needed
-               endlocal & set "%~1=0E0"
-               exit /b 0
-           )
-           REM deal with exponent consisting of multiple zeros:
-           if "%_exponent.abs:0=%"=="" (
-               set "_exponent=0"
-           )
-       
-       :removeTrailingZeros
-           REM removes the last zero and increases the exponent
-           if "%_mantissa:~-1%"=="0" (
-               set /a _exponent += 1
-               set "_mantissa=%_mantissa:~0,-1%"
-               REM next iteration of the do-while-loop, which stops at the first non-zero value
-               goto removeTrailingZeros
-           )
+        REM splits up the number
+        for /F "delims=E tokens=1,2" %%D in ("!%~1!") do (
+            set "_mantissa=%%D"
+            set "_exponent=%%E"
+        )
        
        :addPositiveSigns
-           REM if mantissa or exponent is not zero and has no sign, it gets a positive sign:
-           call :forceSignsExceptZero _mantissa
-           call :forceSignsExceptZero _exponent
-           
+            REM if mantissa or exponent has no sign, it gets a positive sign:
+            call :forceSigns _mantissa
+            call :forceSigns _exponent
+       
+       :zeroTreatment
+            set "_mantissa.abs=%_mantissa:~1%"
+            set "_exponent.abs=%_exponent:~1%"
+
+            REM In case the mantissa is zero, it makes sense if the exponent is also zero.
+            if "%_mantissa.abs:0=%"=="" (
+                REM no further optimization needed
+                endlocal & set "%~1=0E0"
+                exit /b 0
+            )
+
+            REM deal with exponent consisting of multiple zeros:
+            if "%_exponent.abs:0=%"=="" (
+                set "_exponent=0"
+            )
+       
        :removeLeadingZerosFromMantissa
-           if "%_mantissa:~1,1%"=="0" (
-               set "_mantissa=%_mantissa:~0,1%%_mantissa:~2%"
-               goto removeLeadingZerosFromMantissa
-           )
+            if "%_mantissa:~1,1%"=="0" (
+                set "_mantissa=%_mantissa:~0,1%%_mantissa:~2%"
+                goto removeLeadingZerosFromMantissa
+            )
            
        :removeLeadingZerosFromExponent
             if "%_exponent:~1,1%"=="0" (
                 set "_exponent=%_exponent:~0,1%%_exponent:~2%"
                 goto removeLeadingZerosFromExponent
             )
+
+       :removeTrailingZeros
+            REM Removes the last zero and increases the exponent:
+            if "%_mantissa:~-1%"=="0" (
+
+                REM Important: Using set /a at this point destroys formatting like adding a plus sign and
+                REM            could cause strange behaviour if redundant leading zeros are not removed so
+                REM            that the exponent gets treated as octal number.
+                set /a _exponent += 1
+
+                set "_mantissa=%_mantissa:~0,-1%"
+
+                REM next iteration of the do-while-loop, which stops at the first non-zero value
+                goto removeTrailingZeros
+            )
+
+            REM Reenforce the sign after the usage of set /a.
+            call :forceSignsExceptZero _exponent
        
     REM combines the number again
     endlocal & set "%~1=%_mantissa%E%_exponent%"
