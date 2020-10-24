@@ -1,6 +1,7 @@
 # Number.cmd
 A new data type for Batch, that can represent large and floating-point numbers and enables calculation with those.
 
+
 # Syntax
 The basic syntax of Number.cmd looks like this:
 ```
@@ -12,6 +13,7 @@ with:
 The operands can also be constants like `Number.pi` or `Number.e`.
 - `<operator>` should be one of the following mathematical operators: `+`, `-`, `*`, `/`.  
 
+
 # Examples
 ```cmd
 Number x = 4 + 48
@@ -21,21 +23,6 @@ Number result = %x% + %y%
 ```
 Note: In batch files you have to `call Number` to continue execution.
 
-# Exitcodes
-```
- 0: Success
- 1: First operand is not a number (NaN)
- 2: Second operand is not a number (NaN)
- 3: Unknown operator
- 4: Missing parameter(s)
-```
-
-# Standard Output
-Number.cmd does not write anything to standard output (stdout) by default. If you want the result to be printed, for example when using Number.cmd directly in cmd, you can use `#` instead of a variable-name with an equal-sign.  
-The following command for example will output "+8E-1" to the standard output stream:
-```cmd
-Number # 4 / 5
-```
 
 # Usage
 The Number.cmd file does not need any dependencies and can be used as is without other files from this repository.  
@@ -46,3 +33,21 @@ But the latest version of Number.cmd (and the whole repository) can also be foun
 curl "https://tim-greller.de/git/number/Number.cmd" > Number.cmd
 ```
 This way you won't have to add Number.cmd to your git-repository and you won't have to worry about manually checking for updates in order to recieve bugfixes or new features.
+
+
+# Exitcodes
+```
+ 0: Success
+ 1: First operand is not a number (NaN)
+ 2: Second operand is not a number (NaN)
+ 3: Unknown operator
+ 4: Missing parameter(s)
+```
+
+
+# Standard Output
+Number.cmd does not write anything to standard output (stdout) by default. If you want the result to be printed, for example when using Number.cmd directly in cmd, you can use `#` instead of a variable-name with an equal-sign.  
+The following command for example will output "+8E-1" to the standard output stream:
+```cmd
+Number # 4 / 5
+```
