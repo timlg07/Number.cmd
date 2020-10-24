@@ -36,3 +36,13 @@ The following command for example will output "+8E-1" to the standard output str
 ```cmd
 Number # 4 / 5
 ```
+
+# Usage
+The Number.cmd file does not need any dependencies and can be used as is without other files from this repository.  
+
+To use Number.cmd in your projects, you can of course manually download or clone the repository or just copy or clone the Number.cmd file.
+But the latest version of Number.cmd (and the whole repository) can also be found on [git.tim-greller.de/number/Number.cmd](https://tim-greller.de/git/number/Number.cmd). This allows you to import the latest version in your project using curl:
+```cmd
+curl "https://tim-greller.de/git/number/Number.cmd" > Number.cmd
+```
+This way you won't have to add Number.cmd to your git-repository and you won't have to worry about manually checking for updates in order to recieve bugfixes or new features.
