@@ -488,6 +488,7 @@ exit /b 0
        
        :addPositiveSigns
             REM if mantissa or exponent has no sign, it gets a positive sign:
+            REM (zero treatment is done afterwards anyways, so there is no need for extra checks.)
             call :forceSigns _mantissa
             call :forceSigns _exponent
        
