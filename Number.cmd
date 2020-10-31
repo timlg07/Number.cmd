@@ -72,7 +72,7 @@ goto Finish
 
     REM if second operand is zero, the result is equal to the first operand
     if "%_operand2.zero%"=="true" (
-        set "@return=%_operand1%"
+        set "@return=%_operand1.mantissa.integer%E%_operand1.exponent.integer%"
         goto finish
     )
     
