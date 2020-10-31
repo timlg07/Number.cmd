@@ -81,7 +81,7 @@ goto Finish
     if "%_operand2.mantissa.integer:~0,1%"=="+" set _newSign=-
     set "_operand2.mantissa.integer=%_newSign%%_operand2.mantissa.integer:~1%"
 
-    REM add both numbers, since a - b <=> a + (-b)
+    REM add both numbers, since a - b = a + (-b)
 goto Addition
 
 
@@ -89,11 +89,11 @@ goto Addition
 :Multiplication
 
     REM add the exponents, because:
-    REM a^r * a^s <=> a^(r+s)
+    REM a^r * a^s = a^(r+s)
     REM a = 10; r = operand1.exponent; s = operand2.exponent;
     call :signedAdd _exponent = "%_operand1.exponent.integer%" + "%_operand2.exponent.integer%"
     REM multiply the mantissas, because:
-    REM m_1 * 10^r  *  m_2 * 10^s <=> m_1 * m_2  *  10^r * 10^s
+    REM m_1 * 10^r  *  m_2 * 10^s = m_1 * m_2  *  10^r * 10^s
     call :signedMul _mantissa = "%_operand1.mantissa.integer%" * "%_operand2.mantissa.integer%"
     REM return both
     set "@return=%_mantissa%E%_exponent%"
@@ -112,8 +112,8 @@ goto Finish
     set "_operand2.mantissa.integer=%_operand2.mantissa.integer:-=%"
 
     REM divide the mantissas, because:
-    REM ( m_1 * 10^r ) / ( m_2 * 10^s ) <=> ( m_1 / m_2 ) * ( 10^r / 10^s )
-    REM <<the following uncommented code is mainly from Batch_Tools/3-2-division.cmd>>
+    REM ( m_1 * 10^r ) / ( m_2 * 10^s ) = ( m_1 / m_2 ) * ( 10^r / 10^s )
+    REM [the following uncommented code is mainly from Batch_Tools/3-2-division.cmd]
     set /a _int = _operand1.mantissa.integer / _operand2.mantissa.integer
     set "@return=%_int%"
     if %@return% equ 0 set "@return="
@@ -131,7 +131,7 @@ goto Finish
         ))
     
     REM subtract the exponents, because:
-    REM a^r / a^s <=> a^(r-s)
+    REM a^r / a^s = a^(r-s)
     REM a = 10; r = operand1.exponent; s = operand2.exponent;
     REM i) invert the second exponents sign
     set "_newExponentSign=+"
@@ -150,7 +150,7 @@ goto Finish
 
 
 
-:signedAdd <VarName>%1 = <SignedBigInteger>%2 + <SignedBigInteger>%4
+:signedAdd VarName %1 = SignedBigInteger %2 + SignedBigInteger %4
     setlocal EnableDelayedExpansion
 
         set "a=%~2"
@@ -185,7 +185,7 @@ exit /b
 
 
 
-:unsignedAdd <VarName>%1 = <UnsignedBigInteger>%2 + <UnsignedBigInteger>%4
+:unsignedAdd VarName %1 = UnsignedBigInteger %2 + UnsignedBigInteger %4
     setlocal EnableDelayedExpansion
         set /a carry = 0
         set /a index = 1
@@ -240,7 +240,7 @@ exit /B
 
 
 
-:unsignedSub <VarName>%1 = <UnsignedBigInteger>%2 - <UnsignedBigInteger>%4
+:unsignedSub VarName %1 = UnsignedBigInteger %2 - UnsignedBigInteger %4
     setlocal EnableDelayedExpansion
     
         set /a carry = 0
@@ -302,7 +302,7 @@ exit /B
 exit /B
     
 
-:signedMul <VarName>%1 = <SignedBigInteger>%2 * <SignedBigInteger>%4
+:signedMul VarName %1 = SignedBigInteger %2 * SignedBigInteger %4
     setlocal EnableDelayedExpansion
 
         set "a=%~2"
@@ -322,7 +322,7 @@ exit /B
     )
 exit /b
 
-:unsignedMul <VarName>%1 = <UnsignedBigInteger>%2 * <UnsignedBigInteger>%4
+:unsignedMul VarName %1 = UnsignedBigInteger %2 * UnsignedBigInteger %4
     setlocal EnableDelayedExpansion
         set "result="
         set "op1=%~2"
@@ -363,7 +363,7 @@ exit /b
 exit /b
 
 
-:strlen <String>%1
+:strlen String %1
 setlocal EnableDelayedExpansion
     set "s=%~1_"
     set /a len = 0
@@ -377,7 +377,7 @@ endlocal & exit /b %len%
 
 :: Adds a plus sign to the given variables value if it has no sign specified.
 :: @param {String} variable name
-:forceSigns <VarName>%1 <Boolean>%2
+:forceSigns VarName %1 Boolean %2
     if "!%~1:~0,1!" NEQ "+"  (
     if "!%~1:~0,1!" NEQ "-"  (
         set "%~1=+!%~1!"
@@ -387,13 +387,13 @@ exit /b
 :: Adds a plus sign to the given variables value if it has no sign specified and is not zero.
 :: Does the same as :forceSigns, but does not change the variable if its value is only zero.
 :: @param {String} variable name
-:forceSignsExceptZero <VarName>%1
+:forceSignsExceptZero VarName %1
     if "!%~1:0=!" NEQ "" call :forceSigns "%~1"
 exit /b
 
 :: Removes all leading zeros from a signed number while keeping its sign.
 :: The first character of the number has to be the sign.
-:trimLeadingZeros <VarName>%1
+:trimLeadingZeros VarName %1
     for /f "tokens=* delims=0" %%n in ("!%~1:~1!") do set "%~1=!%~1:~0,1!%%n"
 exit /b
 
@@ -410,16 +410,16 @@ exit /b
 
 :: Splits the String representation of a number in its parts
 :: @param {String} variable name
-:decode <String>%1
+:decode String %1
     if "!%~1!"=="NaN" exit /b 1
     
     REM check for static constants
     if /i "!%~1:~0,7!"=="Number." (
-        REM 2.71828182845904523536028747135266249775724709369995 -> INT32
+        REM 2.71828182845904523536028747135266249775724709369995
         if /i "!%~1:~7!"=="e"  set "%~1=+271828182E-8"
-        REM 3.141592653589793238462643383279502884197169399375105820974944 -> INT32
+        REM 3.141592653589793238462643383279502884197169399375105820974944
         if /i "!%~1:~7!"=="pi" set "%~1=+314159265E-8"
-        REM 1.618033988749894848204586834365638117720309179805762862135448 -> INT32
+        REM 1.618033988749894848204586834365638117720309179805762862135448
         if /i "!%~1:~7!"=="phi" set "%~1=+161803398E-8"
     )
     
@@ -478,7 +478,7 @@ exit /b 0
 
 :: Optimizes the String representation of a number
 :: @param {String} variable name
-:optimize <String>%1
+:optimize String %1
     setlocal EnableDelayedExpansion
         REM splits up the number
         for /F "delims=E tokens=1,2" %%D in ("!%~1!") do (
