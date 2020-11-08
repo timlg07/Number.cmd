@@ -1,5 +1,4 @@
 @echo off
-setlocal
 
 if not exist "%~1" (
     echo ERROR. No valid test-file provided.
@@ -10,7 +9,7 @@ if not exist "%~1" (
 )
 
 
-set /a total=failed=passed=0
+set /a _total=_failed=_passed=0
 
 echo.
 echo:--- Starting tests: %~n1
@@ -21,22 +20,21 @@ for /F "usebackq tokens=1* delims==" %%P in ("%~1") do (
         for /F "tokens=* delims= " %%E in ("%%Q") do (
             if "%%R"=="%%E" (
                 echo:[ ] test passed: %%P = %%E
-                set /a passed += 1
+                set /a _passed += 1
             ) else (
                 echo:[!] test failed: %%P; expected: %%E but was: %%R
-                set /a failed += 1
+                set /a _failed += 1
             )
-            set /a total += 1
+            set /a _total += 1
         )
     )
 )
 
 echo.
 echo:--- Tests finished: %~n1
-echo:---    Total tests: %total%
-echo:---   Passed tests: %passed%
-echo:---   Failed tests: %failed%
+echo:---    Total tests: %_total%
+echo:---   Passed tests: %_passed%
+echo:---   Failed tests: %_failed%
 echo.
 
-endlocal
-pause >nul
+exit /b %_failed%
