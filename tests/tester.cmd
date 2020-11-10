@@ -8,6 +8,9 @@ if not exist "%~1" (
     echo   Example line: `5 * 7 = +35E0`
 )
 
+set _timeLogFile="%~dp1performance\%~n1.times.log"
+2>nul del %_timeLogFile%
+
 set /a _measureTime = 0
 if "%~2" neq "" set "_measureTime=%~2"
 
@@ -25,7 +28,7 @@ for /F "usebackq tokens=1* delims==" %%P in ("%~1") do (
                     for /F "usebackq tokens=1,2 delims=.," %%t in (`powershell -command "(Measure-Command {"%~dp0..\Number" _ %%P%}).TotalMilliseconds.ToString()"`) do (
                         echo.[ ] test passed: %%P = %%E; completed in %%t,%%u ms
                         set /a _totalTime += %%t
-                        2>nul (echo.%%P = %%E :: %%t,%%u ms >> "%~dp1performance\%~n1.times.log")
+                        2>nul (echo.%%P = %%E :: %%t,%%u ms >> %_timeLogFile%)
                     )
                 ) else (
                     echo:[ ] test passed: %%P = %%E
