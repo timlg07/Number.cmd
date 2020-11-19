@@ -130,7 +130,7 @@ goto Finish
         set /a _decP += 1
         
         if %_remainder% NEQ 0 (
-        if %_decP% LSS 7 (
+        if %_decP% LSS %_precision% (
             goto div_LOOP
         ))
     
