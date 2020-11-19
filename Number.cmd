@@ -8,11 +8,15 @@
         echo.ERROR. Missing parameter^(s^).
         exit /b 4
     )
-
+    
     set "_variable=%~1"
     set "_operand1=%~2"
     set "_operator=%~3"
     set "_operand2=%~4"
+	
+    REM Default precision = 8:
+    set "_precision=8"
+    if "%~5" neq "" call :readPrecisionParam "%~5"
 
     set "@return=NaN"
 
@@ -406,6 +410,23 @@ exit /b
     )
     @del "%tmp%\number-cmd-echo-state" 2>nul
 @exit /b
+
+
+:: If the given parameter-text is specifying the precision, it is set.
+:readPrecisionParam String %1
+    for /f "tokens=1,2* delims=:" %%p in ("%~1") do (
+		if /i "%%~p" neq "p" if /i "%%~p" neq "precision" (
+			echo.WARNING. Invalid argument, please specify the precision properly.
+			exit /b 1
+		)
+		
+		set /a "_castedPrecision=%%~q"
+		if !_castedPrecision! gtr 0 (
+			set "_precision=!_castedPrecision!"
+			echo precision detected: !_castedPrecision!.
+		)
+	)
+exit /b
 
 
 :: Splits the String representation of a number in its parts
