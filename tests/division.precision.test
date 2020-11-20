@@ -1,5 +1,6 @@
 9 / 8 precision:2 = +11E-1
 2 / 3 precision:3 = +667E-3
 1 / 3 precision:4 = +3333E-4
-1 / 7 precision:10 = +1428571429E-10
 70 / 34 precision:7 = +2058824E-6
+24868420 / 2 precision:2 = +12E+6
+1 / 7 precision:10 = +1428571429E-10
