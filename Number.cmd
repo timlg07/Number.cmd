@@ -433,7 +433,6 @@ exit /b
 		set /a "_castedPrecision=%%~q"
 		if !_castedPrecision! gtr 0 (
 			set "_precision=!_castedPrecision!"
-			echo precision detected: !_castedPrecision!.
 		)
 	)
 exit /b
