@@ -109,10 +109,11 @@ goto Finish
 
 :Division
 
-    REM remove negative sign, because it would show up at each digit
-    set /a _sign = +1
-    if "%_operand1.mantissa.integer:~0,1%"=="-" set /a _sign *= -1
-    if "%_operand2.mantissa.integer:~0,1%"=="-" set /a _sign *= -1
+    REM remove negative sign, because it would show up at each digit.
+	REM the sign variable is a single flag, where 1 = positive and 0 = negative.
+    set /a _sign = 1
+    if "%_operand1.mantissa.integer:~0,1%"=="-" set /a "_sign = ^!_sign"
+    if "%_operand2.mantissa.integer:~0,1%"=="-" set /a "_sign = ^!_sign"
     set "_operand1.mantissa.integer=%_operand1.mantissa.integer:-=%"
     set "_operand2.mantissa.integer=%_operand2.mantissa.integer:-=%"
 
@@ -193,9 +194,13 @@ goto Finish
     call :signedAdd _exponent = "%_exponent%" + "%_decP_shift%"
     
     REM set sign
-    set /a @return *= _sign
+    if %_sign% equ 1 (
+	    set "_sign_string=+"
+	) else (
+	    set "_sign_string=-"
+	)
     REM return
-    set "@return=%@return%E%_exponent%"
+    set "@return=%_sign_string%%@return%E%_exponent%"
 
 goto Finish
 
