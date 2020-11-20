@@ -8,11 +8,15 @@
         echo.ERROR. Missing parameter^(s^).
         exit /b 4
     )
-
+    
     set "_variable=%~1"
     set "_operand1=%~2"
     set "_operator=%~3"
     set "_operand2=%~4"
+    
+    REM Default precision = 8:
+    set "_precision=8"
+    if "%~5" neq "" call :readPrecisionParam "%~5"
 
     set "@return=NaN"
 
@@ -117,19 +121,57 @@ goto Finish
     set /a _int = _operand1.mantissa.integer / _operand2.mantissa.integer
     set "@return=%_int%"
     if %@return% equ 0 set "@return="
-    set /a _remainder = _operand1.mantissa.integer - ( _int * _operand2.mantissa.integer )
-    set /a _decP = 0
-    :div_LOOP
-        set /a _intR      = (_remainder*10) /           _operand2.mantissa.integer
-        set /a _remainder = (_remainder*10) - ( _intR * _operand2.mantissa.integer )
-        set @return=%@return%%_intR%
-        set /a _decP += 1
-        
-        if %_remainder% NEQ 0 (
-        if %_decP% LSS 7 (
-            goto div_LOOP
-        ))
     
+    call :strlen "%@return%"
+    set /a _current_precision = %errorlevel%
+    set /a _decP = 0
+    set /a _remainder = _operand1.mantissa.integer - (_int * _operand2.mantissa.integer)
+    
+    :div_while
+        if %_remainder% NEQ 0 (
+            if %_current_precision% LEQ %_precision% (
+                goto div_do
+            )
+        )
+        goto div_reducePrecision
+        
+        :div_do
+            set /a _intR      = (_remainder*10) /          _operand2.mantissa.integer
+            set /a _remainder = (_remainder*10) - (_intR * _operand2.mantissa.integer)
+            set @return=%@return%%_intR%
+            set /a _decP += 1
+            set /a _current_precision += 1
+        goto div_while
+        
+
+    :div_reducePrecision
+        REM Reduce the precision value and then remove the last digit. 
+        REM This way it can be decided if rounding is necessary or not.
+        set /a _current_precision -= 1
+
+        if %_current_precision% EQU %_precision% (
+            REM One decimal place less, because the last digit will be removed.
+            set /a _decP -= 1
+            
+            REM round the digit if it will be in the result.
+            set /a _roundup = 0
+            if "%@return:~-1,1%" geq "5" (
+                set /a _roundup = 1
+            )
+        
+            set /a _lastdigit = %@return:~-2,1% + _roundup
+            set "@return=%@return:~0,-2%!_lastdigit!"
+        )
+        
+        if %_current_precision% GTR %_precision% (
+            REM One decimal place less, because the last digit will be removed.
+            set /a _decP -= 1
+            
+            REM If the digit will not be in the result, do not round it.
+            set "@return=%@return:~0,-1%!"
+            goto div_reducePrecision
+        )
+
     REM subtract the exponents, because:
     REM a^r / a^s = a^(r-s)
     REM a = 10; r = operand1.exponent; s = operand2.exponent;
@@ -139,12 +181,15 @@ goto Finish
     set "_operand2.exponent.integer=%_newExponentSign%%_operand2.exponent.integer:~1%"
     REM ii) add the exponents
     call :signedAdd _exponent = "%_operand1.exponent.integer%" + "%_operand2.exponent.integer%"
+    
     REM lower the exponent for each added decimal place
-    call :signedAdd _exponent = "%_exponent%" + "-%_decP%"
+    set /a _decP_shift = -1 * _decP
+    call :signedAdd _exponent = "%_exponent%" + "%_decP_shift%"
+    
     REM set sign
     set /a @return *= _sign
     REM return
-    set @return=%@return%E%_exponent%
+    set "@return=%@return%E%_exponent%"
 
 goto Finish
 
@@ -406,6 +451,22 @@ exit /b
     )
     @del "%tmp%\number-cmd-echo-state" 2>nul
 @exit /b
+
+
+:: If the given parameter-text is specifying the precision, it is set.
+:readPrecisionParam String %1
+    for /f "tokens=1,2* delims=:" %%p in ("%~1") do (
+        if /i "%%~p" neq "p" if /i "%%~p" neq "precision" (
+            echo.WARNING. Invalid argument, please specify the precision properly.
+            exit /b 1
+        )
+        
+        set /a "_castedPrecision=%%~q"
+        if !_castedPrecision! gtr 0 (
+            set "_precision=!_castedPrecision!"
+        )
+    )
+exit /b
 
 
 :: Splits the String representation of a number in its parts

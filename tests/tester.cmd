@@ -22,7 +22,7 @@ echo:--- Starting tests: %~n1
 echo.
 
 for /F "usebackq tokens=1* delims==" %%P in ("%~1") do (
-    for /F "usebackq" %%R in (`%~dp0..\Number # %%P`) do (
+    for /F "usebackq" %%R in (`"%~dp0..\Number" # %%P`) do (
         for /F "tokens=* delims= " %%E in ("%%Q") do (
             if "%%R"=="%%E" (
                 if %_measureTime% neq 0 (
