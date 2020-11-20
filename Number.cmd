@@ -13,7 +13,7 @@
     set "_operand1=%~2"
     set "_operator=%~3"
     set "_operand2=%~4"
-	
+    
     REM Default precision = 8:
     set "_precision=8"
     if "%~5" neq "" call :readPrecisionParam "%~5"
@@ -121,29 +121,34 @@ goto Finish
     set /a _int = _operand1.mantissa.integer / _operand2.mantissa.integer
     set "@return=%_int%"
     if %@return% equ 0 set "@return="
-    set /a _remainder = _operand1.mantissa.integer - ( _int * _operand2.mantissa.integer )
+    
+    call :strlen "%@return%"
+    set /a _current_precision = %errorlevel%
     set /a _decP = 0
+    set /a _remainder = _operand1.mantissa.integer - (_int * _operand2.mantissa.integer)
+    
     :div_LOOP
-        set /a _intR      = (_remainder*10) /           _operand2.mantissa.integer
-        set /a _remainder = (_remainder*10) - ( _intR * _operand2.mantissa.integer )
+        set /a _intR      = (_remainder*10) /          _operand2.mantissa.integer
+        set /a _remainder = (_remainder*10) - (_intR * _operand2.mantissa.integer)
         set @return=%@return%%_intR%
         set /a _decP += 1
+        set /a _current_precision += 1
         
         if %_remainder% NEQ 0 (
-            if %_decP% LEQ %_precision% (
+            if %_current_precision% LEQ %_precision% (
                 goto div_LOOP
             ) else (
-			    set /a _roundup = 0
-			    if %@return:~-1,1% geq 5 (
-				    set /a _roundup = 1
-				)
-				
-				set /a _decP -= 1
-				set /a _lastdigit = %@return:~-2,1% + _roundup
-			    set "@return=%@return:~0,-2%!_lastdigit!"
-			)
-		)
-    
+                set /a _roundup = 0
+                if %@return:~-1,1% geq 5 (
+                    set /a _roundup = 1
+                )
+                
+                set /a _decP -= 1
+                set /a _lastdigit = %@return:~-2,1% + _roundup
+                set "@return=%@return:~0,-2%!_lastdigit!"
+            )
+        )
+
     REM subtract the exponents, because:
     REM a^r / a^s = a^(r-s)
     REM a = 10; r = operand1.exponent; s = operand2.exponent;
@@ -425,16 +430,16 @@ exit /b
 :: If the given parameter-text is specifying the precision, it is set.
 :readPrecisionParam String %1
     for /f "tokens=1,2* delims=:" %%p in ("%~1") do (
-		if /i "%%~p" neq "p" if /i "%%~p" neq "precision" (
-			echo.WARNING. Invalid argument, please specify the precision properly.
-			exit /b 1
-		)
-		
-		set /a "_castedPrecision=%%~q"
-		if !_castedPrecision! gtr 0 (
-			set "_precision=!_castedPrecision!"
-		)
-	)
+        if /i "%%~p" neq "p" if /i "%%~p" neq "precision" (
+            echo.WARNING. Invalid argument, please specify the precision properly.
+            exit /b 1
+        )
+        
+        set /a "_castedPrecision=%%~q"
+        if !_castedPrecision! gtr 0 (
+            set "_precision=!_castedPrecision!"
+        )
+    )
 exit /b
 
 
