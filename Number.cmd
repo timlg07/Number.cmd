@@ -130,9 +130,19 @@ goto Finish
         set /a _decP += 1
         
         if %_remainder% NEQ 0 (
-        if %_decP% LSS %_precision% (
-            goto div_LOOP
-        ))
+            if %_decP% LEQ %_precision% (
+                goto div_LOOP
+            ) else (
+			    set /a _roundup = 0
+			    if %@return:~-1,1% geq 5 (
+				    set /a _roundup = 1
+				)
+				
+				set /a _decP -= 1
+				set /a _lastdigit = %@return:~-2,1% + _roundup
+			    set "@return=%@return:~0,-2%!_lastdigit!"
+			)
+		)
     
     REM subtract the exponents, because:
     REM a^r / a^s = a^(r-s)
@@ -148,7 +158,7 @@ goto Finish
     REM set sign
     set /a @return *= _sign
     REM return
-    set @return=%@return%E%_exponent%
+    set "@return=%@return%E%_exponent%"
 
 goto Finish
 
