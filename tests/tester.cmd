@@ -8,11 +8,12 @@ if not exist "%~1" (
     echo   Example line: `5 * 7 = +35E0`
 )
 
-set _timeLogFile="%~dp1performance\%~n1.times.log"
-2>nul del %_timeLogFile%
-
 set /a _measureTime = 0
-if "%~2" neq "" set "_measureTime=%~2"
+if "%~2" neq "" if "%~2" neq "0" if /i "%~2" neq "false" (
+    set "_measureTime=%~2"
+    set _timeLogFile="%~dp1performance\%~n1.times.log"
+    2>nul del %_timeLogFile%
+)
 
 set /a _total = _failed = _passed = _totalTime = 0
 
@@ -50,7 +51,9 @@ echo:--- Tests finished: %~n1
 echo:---    Total tests: %_total%
 echo:---   Passed tests: %_passed%
 echo:---   Failed tests: %_failed%
-echo:---   Average time: %_averageTime% ms
+if %_measureTime% neq 0 (
+    echo:---   Average time: %_averageTime% ms
+)
 echo.
 
 exit /b %_failed%
