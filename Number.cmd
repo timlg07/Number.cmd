@@ -14,8 +14,9 @@
     set "_operator=%~3"
     set "_operand2=%~4"
     
-    REM Default precision = 8:
-    set "_precision=8"
+    REM Do not restrict the precision by default. Only the division will fallback to a default value
+	REM to ensure that the algorithm always terminates.
+    set "_precision=max"
     if "%~5" neq "" call :readPrecisionParam "%~5"
 
     set "@return=NaN"
@@ -122,6 +123,11 @@ goto Finish
     set "@return=%_int%"
     if %@return% equ 0 set "@return="
     
+	if %_precision% equ max (
+	    set /a _div_precision = 8
+	) else (
+	    set /a _div_precision = _precision
+	)
     call :strlen "%@return%"
     set /a _current_precision = %errorlevel%
     set /a _decP = 0
@@ -129,7 +135,7 @@ goto Finish
     
     :div_while
         if %_remainder% NEQ 0 (
-            if %_current_precision% LEQ %_precision% (
+            if %_current_precision% LEQ %_div_precision% (
                 goto div_do
             )
         )
@@ -149,7 +155,7 @@ goto Finish
         REM This way it can be decided if rounding is necessary or not.
         set /a _current_precision -= 1
 
-        if %_current_precision% EQU %_precision% (
+        if %_current_precision% EQU %_div_precision% (
             REM One decimal place less, because the last digit will be removed.
             set /a _decP -= 1
             
@@ -163,7 +169,7 @@ goto Finish
             set "@return=%@return:~0,-2%!_lastdigit!"
         )
         
-        if %_current_precision% GTR %_precision% (
+        if %_current_precision% GTR %_div_precision% (
             REM One decimal place less, because the last digit will be removed.
             set /a _decP -= 1
             
@@ -595,9 +601,45 @@ exit /b 0
                 REM next iteration of the do-while-loop, which stops at the first non-zero value
                 goto removeTrailingZeros
             )
+			
+		:adjustPrecision
+			REM Make no adjustments if the precision should be as high as possible.
+			if %_precision% equ max goto reenforceExponentSign
+		
+			REM The precision is the amount of digits. (1 character is the sign).
+			call :strlen "%_mantissa%"
+			set /a _current_precision = %errorlevel% - 1
+			
+			:reducePrecision
+			REM Reduce the precision value and then remove the last digit. 
+			REM This way it can be decided if rounding is necessary or not.
+			set /a _current_precision -= 1
 
-            REM Reenforce the sign after the usage of set /a.
-            call :forceSignsExceptZero _exponent
+			if %_current_precision% EQU %_precision% (
+				REM Multiply the number by 10, because the last digit will be removed.
+				set /a _exponent += 1
+				
+				set /a _roundup = 0
+				if "%_mantissa:~-1,1%" geq "5" (
+					set /a _roundup = 1
+				)
+			
+				set /a _lastdigit = %_mantissa:~-2,1% + _roundup
+				set "_mantissa=%_mantissa:~0,-2%!_lastdigit!"
+			)
+			
+			if %_current_precision% GTR %_precision% (
+				REM Multiply the number by 10, because the last digit will be removed.
+				set /a _exponent += 1
+				
+				REM If the digit will not be in the result, do not round it.
+				set "_mantissa=%_mantissa:~0,-1%!"
+				goto reducePrecision
+			)
+		
+		:reenforceExponentSign
+        REM Re-enforce the sign after the usage of set /a.
+        call :forceSignsExceptZero _exponent
        
     REM combines the number again
     endlocal & set "%~1=%_mantissa%E%_exponent%"
