@@ -592,26 +592,24 @@ exit /b 0
             REM This way it can be decided if rounding is necessary or not.
             set /a _current_precision -= 1
 
-            if %_current_precision% EQU %_precision% (
-                REM Multiply the number by 10, because the last digit will be removed.
+            if %_current_precision% GEQ %_precision% (
+                REM Increase the exponent to multiply the number by 10 while removing the last digit.
                 set /a _exponent += 1
+                set "_lastdigit=%_mantissa:~-1,1%"
+                set "_mantissa=%_mantissa:~0,-1%"
                 
-                set /a _roundup = 0
-                if "%_mantissa:~-1,1%" geq "5" (
-                    set /a _roundup = 1
+                REM If the precisions do not match, continue with the reduction.
+                if %_current_precision% NEQ %_precision% goto reducePrecision
+                
+                REM Round up, if the cut-off digit was greater than 5.
+                if "!_lastdigit!" geq "5" (
+                    call :unsignedAdd tmp_mantissa = !_mantissa:~1! + 1
+                    set "_mantissa=!_mantissa:~0,1!!tmp_mantissa!"
+                    set "tmp_mantissa="
                 )
-            
-                set /a _lastdigit = %_mantissa:~-2,1% + _roundup
-                set "_mantissa=%_mantissa:~0,-2%!_lastdigit!"
-            )
-            
-            if %_current_precision% GTR %_precision% (
-                REM Multiply the number by 10, because the last digit will be removed.
-                set /a _exponent += 1
-                
-                REM If the digit will not be in the result, do not round it.
-                set "_mantissa=%_mantissa:~0,-1%!"
-                goto reducePrecision
+				
+				REM Redo the optimizations after the number was changed.
+                goto zeroTreatment
             )
         
         :reenforceExponentSign
