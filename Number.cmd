@@ -4,6 +4,7 @@
 
 
 :main
+    REM A minimum of 4 parameters is always required.
     if "%~4"=="" (
         echo.ERROR. Missing parameter^(s^).
         exit /b 4
@@ -74,8 +75,7 @@ goto Finish
 
 
 :Subtraction
-
-    REM if second operand is zero, the result is equal to the first operand
+    REM If the second operand is zero, the result is equal to the first operand.
     if "%_operand2.zero%"=="true" (
         set "@return=%_operand1.mantissa.integer%E%_operand1.exponent.integer%"
         goto finish
@@ -92,48 +92,58 @@ goto Addition
 
 
 :Multiplication
-
-    REM add the exponents, because:
+    REM Add the exponents, because:
     REM a^r * a^s = a^(r+s)
-    REM a = 10; r = operand1.exponent; s = operand2.exponent;
+    REM where a = 10; r = operand1.exponent; s = operand2.exponent;
     call :signedAdd _exponent = "%_operand1.exponent.integer%" + "%_operand2.exponent.integer%"
-    REM multiply the mantissas, because:
+    
+    REM Multiply the mantissas, because:
     REM m_1 * 10^r  *  m_2 * 10^s = m_1 * m_2  *  10^r * 10^s
     call :signedMul _mantissa = "%_operand1.mantissa.integer%" * "%_operand2.mantissa.integer%"
+    
     REM return both
     set "@return=%_mantissa%E%_exponent%"
-
 goto Finish
 
 
 
 :Division
-    REM remove negative sign, because it would show up at each digit.
-    REM the sign variable is a single flag, where 1 = positive and 0 = negative.
+    REM The sign variable is a single flag, where 1 = positive and 0 = negative.
     set /a _sign = 1
     if "%_operand1.mantissa.integer:~0,1%"=="-" set /a "_sign = ^!_sign"
     if "%_operand2.mantissa.integer:~0,1%"=="-" set /a "_sign = ^!_sign"
+    
+    REM Remove negative sign, because it would show up at each digit.
     set "_operand1.mantissa.integer=%_operand1.mantissa.integer:-=%"
     set "_operand2.mantissa.integer=%_operand2.mantissa.integer:-=%"
 
-    REM divide the mantissas, because:
+    REM Divide the mantissas, because:
     REM ( m_1 * 10^r ) / ( m_2 * 10^s ) = ( m_1 / m_2 ) * ( 10^r / 10^s )
-    REM [the following uncommented code is mainly from Batch_Tools/3-2-division.cmd]
     set /a _int = _operand1.mantissa.integer / _operand2.mantissa.integer
     set "@return=%_int%"
     
+    REM By default terminate after a precision of 8 digits.
     if %_precision% equ max (
         set /a _div_precision = 8
     ) else (
         set /a _div_precision = _precision
     )
+    
+    REM Count the digits of the integer division to get the current precision.
     call :strlen "%@return%"
     set /a _current_precision = %errorlevel%
+    
+    REM A leading zero does not count for the precision.
     if %@return% equ 0 set /a _current_precision = 0
+    
+    REM Added decimal places, that need to be compensated by the exponent later on.
     set /a _decP = 0
+    
+    REM The remainder from the integer division.
     set /a _remainder = _operand1.mantissa.integer - (_int * _operand2.mantissa.integer)
     
     :div_while
+        REM Repeat while the target precision is not reached and there is still a remainder left.
         if %_remainder% NEQ 0 (
             if %_current_precision% LEQ %_div_precision% (
                 goto div_do
@@ -147,13 +157,12 @@ goto Finish
             set @return=%@return%%_intR%
             set /a _decP += 1
             set /a _current_precision += 1
-        goto div_while
+    goto div_while
         
 
     :div_merge
-        REM subtract the exponents, because:
-        REM a^r / a^s = a^(r-s)
-        REM a = 10; r = operand1.exponent; s = operand2.exponent;
+        REM Subtract the exponents, because: a^r / a^s = a^(r-s)
+        REM where a = 10; r = operand1.exponent; s = operand2.exponent;
         REM i) invert the second exponents sign
         set "_newExponentSign=+"
         if "%_operand2.exponent.integer:~0,1%"=="+" set "_newExponentSign=-"
@@ -161,17 +170,18 @@ goto Finish
         REM ii) add the exponents
         call :signedAdd _exponent = "%_operand1.exponent.integer%" + "%_operand2.exponent.integer%"
         
-        REM lower the exponent for each added decimal place
+        REM Lower the exponent for each added decimal place:
         set /a _decP_shift = -1 * _decP
         call :signedAdd _exponent = "%_exponent%" + "%_decP_shift%"
         
-        REM set sign
+        REM Set the sign:
         if %_sign% equ 1 (
             set "_sign_string=+"
         ) else (
             set "_sign_string=-"
         )
-        REM return
+        
+        REM Combine all parts to get the resulting number:
         set "@return=%_sign_string%%@return%E%_exponent%"
 
 goto Finish
@@ -227,8 +237,7 @@ exit /b
         call :strlen %4
         set /a "op2.len=%errorlevel%"
         
-        REM exit condition for the loop: if index has reached
-        REM Math.max( operand1.length, operand2.length ) + 1
+        REM Exit the loop if index has reached Math.max(operand1.length, operand2.length) + 1
         REM (+1 because of the last carry)
         if %op1.len% GEQ %op2.len% (
             set /a maxIndex = op1.len + 1
@@ -237,7 +246,6 @@ exit /b
         )
         
         :unsignedAdd_while
-        
             REM The current digit is calculated by:
             REM operand1[index] + operand2[index] + carry.
             
@@ -254,18 +262,14 @@ exit /b
                 set /a current -= 10
             )
             
-            REM adding the current digit:
+            REM Adding the current digit to the result:
             set "return=%current%%return%"
             set /a index += 1
             
-
         if %index% LEQ %maxIndex% goto unsignedAdd_while
     
     endlocal & set "%~1=%return%"
 exit /B
-    
-
-
 
 
 :unsignedSub VarName %1 = UnsignedBigInteger %2 - UnsignedBigInteger %4
@@ -283,8 +287,8 @@ exit /B
         call :strlen %4
         set /a "op2.len=%errorlevel%"
         
-        REM exit condition for the loop: if index has reached
-        REM Math.max( operand1.length, operand2.length ) + 1
+        REM Exit condition of the loop: if index has reached
+        REM Math.max(operand1.length, operand2.length) + 1
         REM (+1 because of the last carry)
         if %op1.len% GEQ %op2.len% (
             set /a maxIndex = op1.len + 1
@@ -293,7 +297,6 @@ exit /B
         )
         
         :unsignedSub_while
-        
             REM The current digit is calculated by:
             REM operand1[index] - operand2[index] - carry.
             
@@ -304,13 +307,13 @@ exit /B
             if %op1.len% GEQ %index% set /a current += !op1:~-%index%,1!
             if %op2.len% GEQ %index% set /a current -= !op2:~-%index%,1!
             
-            REM setting the carry:
+            REM Setting the carry:
             if %current% LSS 0 (
                 set /a carry = 1
                 set /a current += 10
             )
             
-            REM adding the current digit:
+            REM Adding the current digit to the result:
             set "return=%current%%return%"
             set /a index += 1
             
@@ -357,6 +360,7 @@ exit /b
         set "op2=%~4"
         set "a_zero="
         
+        REM Special cases for 0 and 1:
         if %op1% equ 0 endlocal & set "%~1=0" & exit /b
         if %op2% equ 0 endlocal & set "%~1=0" & exit /b
         if %op1% equ 1 endlocal & set "%~1=%op2%" & exit /b
@@ -390,7 +394,7 @@ exit /b
     endlocal & set "%~1=%result%"
 exit /b
 
-
+:: Returns the length of the given string as exitcode.
 :strlen String %1
 setlocal EnableDelayedExpansion
     set "s=%~1_"
@@ -403,9 +407,9 @@ setlocal EnableDelayedExpansion
     )
 endlocal & exit /b %len%
 
-:: Adds a plus sign to the given variables value if it has no sign specified.
+:: Adds a plus sign to the given variable's value if it has no sign specified.
 :: @param {String} variable name
-:forceSigns VarName %1 Boolean %2
+:forceSigns
     if "!%~1:~0,1!" NEQ "+"  (
     if "!%~1:~0,1!" NEQ "-"  (
         set "%~1=+!%~1!"
@@ -607,8 +611,8 @@ exit /b 0
                     set "_mantissa=!_mantissa:~0,1!!tmp_mantissa!"
                     set "tmp_mantissa="
                 )
-				
-				REM Redo the optimizations after the number was changed.
+                
+                REM Redo the optimizations after the number was changed.
                 goto zeroTreatment
             )
         
