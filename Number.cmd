@@ -141,7 +141,7 @@ goto Finish
     
     REM The remainder from the integer division.
     set /a _remainder = _operand1.mantissa.integer - (_int * _operand2.mantissa.integer)
-    
+
     :div_while
         REM Repeat while the target precision is not reached and there is still a remainder left.
         if %_remainder% NEQ 0 (
@@ -163,17 +163,20 @@ goto Finish
     :div_merge
         REM Subtract the exponents, because: a^r / a^s = a^(r-s)
         REM where a = 10; r = operand1.exponent; s = operand2.exponent;
+		
         REM i) invert the second exponents sign
-        set "_newExponentSign=+"
-        if "%_operand2.exponent.integer:~0,1%"=="+" set "_newExponentSign=-"
+        set "_newExponentSign=-"
+        if "%_operand2.exponent.integer:~0,1%"=="-" set "_newExponentSign=+"
+		call :forceSigns _operand2.exponent.integer
         set "_operand2.exponent.integer=%_newExponentSign%%_operand2.exponent.integer:~1%"
+		
         REM ii) add the exponents
         call :signedAdd _exponent = "%_operand1.exponent.integer%" + "%_operand2.exponent.integer%"
-        
+
         REM Lower the exponent for each added decimal place:
         set /a _decP_shift = -1 * _decP
         call :signedAdd _exponent = "%_exponent%" + "%_decP_shift%"
-        
+
         REM Set the sign:
         if %_sign% equ 1 (
             set "_sign_string=+"
@@ -237,6 +240,13 @@ exit /b
         call :strlen %4
         set /a "op2.len=%errorlevel%"
         
+        REM Special cases: check if the result can be safely calculated with set /a.
+        if %op1.len% lss 10 if %op2.len% lss 10 (
+            endlocal
+            set /a "%~1=%op1%+%op2%"
+            exit /b
+        )
+        
         REM Exit the loop if index has reached Math.max(operand1.length, operand2.length) + 1
         REM (+1 because of the last carry)
         if %op1.len% GEQ %op2.len% (
@@ -286,6 +296,13 @@ exit /B
         set /a "op1.len=%errorlevel%"
         call :strlen %4
         set /a "op2.len=%errorlevel%"
+        
+        REM Special cases: check if the result can be safely calculated with set /a.
+        if %op1.len% lss 10 if %op2.len% lss 10 (
+            endlocal
+            set /a "%~1=%op1%-%op2%"
+            exit /b
+        )
         
         REM Exit condition of the loop: if index has reached
         REM Math.max(operand1.length, operand2.length) + 1
@@ -365,6 +382,9 @@ exit /b
         if %op2% equ 0 endlocal & set "%~1=0" & exit /b
         if %op1% equ 1 endlocal & set "%~1=%op2%" & exit /b
         if %op2% equ 1 endlocal & set "%~1=%op1%" & exit /b
+        REM Special cases where set /a can be used: 
+        REM 46340^2 < 2147483647 => you can safely multiply numbers in the range between [0;46340]
+        if %op1% leq 46340 if %op2% leq 46340 endlocal & set /a "%~1=%op1%*%op2%" & exit /b
         
         call :strlen %2
         set /a "op1.lastIndex=%errorlevel% - 1"
@@ -507,12 +527,11 @@ exit /b
             )
         )
         
-        REM if no sign is given and the number is not zero, it's assumed to be positive
-        call :forceSignsExceptZero "%~1.exponent.integer"
+        REM If no sign is given the exponent is assumed to be positive.
+        call :forceSigns "%~1.exponent.integer"
         
         REM check for only zeros
-        set "%~1.exponent.integer.abs=!%~1.exponent.integer:-=!"
-        set "%~1.exponent.integer.abs=!%~1.exponent.integer.abs:+=!"
+        set "%~1.exponent.integer.abs=!%~1.exponent.integer:~1!"
         if "!%~1.exponent.integer.abs:0=!"=="" (
             set "%~1.exponent.zero=true"
             set "%~1.exponent.integer=0"
