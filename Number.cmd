@@ -18,7 +18,14 @@
     REM Do not restrict the precision by default. Only the division will fallback to a default value
     REM to ensure that the algorithm always terminates.
     set "_precision=max"
-    if "%~5" neq "" call :readPrecisionParam "%~5"
+
+    REM Check for additional parameters and parse them if provided.
+    :readParams
+    if "%~5" neq "" (
+        call :readPrecisionParam "%~5" || call :readFormatParam "%~5"
+        shift
+        goto readParams
+    )
 
     set "@return=NaN"
 
@@ -445,9 +452,10 @@ exit /b
 
 :: If the given parameter-text is specifying the precision, it is set.
 :readPrecisionParam String %1
+setlocal
     for /f "tokens=1,2* delims=:" %%p in ("%~1") do (
         if /i "%%~p" neq "p" if /i "%%~p" neq "precision" (
-            echo.WARNING. Invalid argument, please specify the precision properly.
+            endlocal
             exit /b 1
         )
         
@@ -456,7 +464,69 @@ exit /b
             set "_precision=!_castedPrecision!"
         )
     )
-exit /b
+endlocal & set "_precision=%_precision%"
+exit /b 0
+
+:: If the given parameter-text is specifying an output format, it is set.
+:readFormatParam String %1
+setlocal
+    for /f "tokens=1,2* delims=:" %%f in ("%~1") do (
+        if /i "%%~f" neq "f" if /i "%%~f" neq "format" (
+            endlocal
+            exit /b 1
+        )
+
+        set "_format=%%~g"
+        set "_format.active=false"
+        set "_format.delim="
+        set "_format.a="
+        set "_format.b="
+    )
+
+    :iterateFormatString
+        REM Exit the loop if the whole format string was parsed.
+        if "%_format%"=="" (
+            if defined _format.delim (
+                endlocal & (
+                    set "_format.active=true"
+                    set "_format.a=%_format.a%"
+                    set "_format.b=%_format.b%"
+                    set "_format.delim=%_format.delim%"
+                )
+                exit /b 0
+            ) else (
+                REM Every format must at least specify a delimeter as floating point.
+                echo Warning: Incorrect format string, no floating point symbol provided. >&2
+                endlocal
+                exit /b 1
+            )
+        )
+
+        set "current="
+        set /a "_parsed=%_format:~0,1%"
+        if "%_format:~0,1%"=="0" set "current=0"
+        if %_parsed% gtr 0 set "current=%_parsed%"
+
+        if not defined current (
+            if defined _format.delim (
+                echo Warning: Incorrect format string, unexpected "%_format:~0,1%". >&2
+                endlocal
+                exit /b 1
+            ) else (
+                set "_format.delim=%_format:~0,1%"
+                set "_format=%_format:~1%"
+                goto iterateFormatString
+            )
+        )
+
+        if defined _format.delim (
+            set "_format.b=%_format.b%%current%"
+        ) else (
+            set "_format.a=%_format.a%%current%"
+        )
+        
+        set "_format=%_format:~1%"
+    goto iterateFormatString
 
 
 :: Splits the String representation of a number in its parts
