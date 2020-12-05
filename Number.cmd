@@ -27,6 +27,11 @@
         goto readParams
     )
 
+    REM Overwrite the precision if given differently from the format parameter.
+    if "%_format.active%"=="true" if defined _format.a if defined _format.b (
+        set /a _precision = _format.a + _format.b
+    )
+
     set "@return=NaN"
 
     call :decode _operand1 || ( echo.ERROR. First operand is not a number ^(NaN^).  & exit /b 1 )
@@ -698,10 +703,48 @@ exit /b
 
 
 :enforceOutputFormat String %1
+if not "%_format.active%"=="true" exit /b 1
 setlocal
 
+    for /F "delims=E tokens=1,2" %%D in ("!%~1!") do (
+        set "_mantissa=%%D"
+        set "_exponent=%%E"
+    )
 
+    set "_sign=%_mantissa:~0,1%"
+    set "_mantissa=%_mantissa:~1%"
 
+    REM Count the digits of the mantissa to get the actual precision.
+    call :strlen "%_mantissa%"
+    set /a _actual_precision = %errorlevel% - 1
+
+    if defined _format.a (
+        if not defined _format.b (
+            set /a _format.b = _actual_precision - _format.a
+        )
+        rem todo: fill m.b with zeros if actual_precision < precision
+    ) else (
+        if defined _format.b (
+            set /a format.a = _actual_precision - _format.b
+        ) else (
+            goto adjustFormatPerExponent
+        )
+    )
+    
+    set "_mantissa.a=!_mantissa:~0,%_format.a%!"
+    set "_mantissa.b=!_mantissa:~%_format.a%,%_format.b%!"
+
+    if "%_mantissa.a%"=="" set "_mantissa.a=0"
+    if "%_mantissa.b%"=="" set "_format.delim="
+
+    set /a _exponent += _format.b
+
+    rem echo:%_sign%%_mantissa.a%%_format.delim%%_mantissa.b%E%_exponent%
+
+endlocal
+exit /b
+
+:adjustFormatPerExponent
 endlocal
 exit /b
 
