@@ -503,9 +503,9 @@ setlocal
         )
 
         set "current="
-        set /a "_parsed=%_format:~0,1%"
-        if "%_format:~0,1%"=="0" set "current=0"
-        if %_parsed% gtr 0 set "current=%_parsed%"
+        :: Simply parsing the current character with set /a is not possible here, because characters
+        :: like "," or "/" have a special meaning and would give a missing operand exception.
+        echo."%_format:~0,1%" | findstr /r "\"[0-9]\"">nul && set "current=%_format:~0,1%"
 
         if not defined current (
             if defined _format.delim (
@@ -697,8 +697,18 @@ exit /b 0
 exit /b
 
 
+:enforceOutputFormat String %1
+setlocal
+
+
+
+endlocal
+exit /b
+
+
 :Finish
     call :optimize @return
+    call :enforceOutputFormat @return
     
     REM output result only when requested by '#' as variable name
     if "%_variable%"=="#" echo.%@return%
