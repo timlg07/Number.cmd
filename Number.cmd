@@ -769,6 +769,29 @@ endlocal
 exit /b
 
 :adjustFormatPerExponent
+    REM Case 1: Positive exponent => Add zeros and display only part A.
+    if %_exponent% gtr 0 (
+        for /l %%i in (1 1 %_exponent%) do set "_mantissa=!_mantissa!0"
+        set /a _exponent = 0
+    )
+
+    REM Case 2: Negative exponent => Move the last (-1 * _exponent) digits from part A to part B.
+    if %_exponent% lss 0 (
+        set "_mantissa.a=!_mantissa:~0,%_exponent%!"
+        set "_mantissa.b=!_mantissa:~%_exponent%!"
+        set /a _exponent = 0
+        set "_split=true"
+    )
+
+    REM Case 3 & final behaviour for all cases: exponent == 0 and gets omited.
+    if %_exponent% equ 0 (
+        if defined _split (
+            if "%_mantissa.a%"=="" set "_mantissa.a=0"
+            rem echo:%_sign%!_mantissa.a!%_format.delim%%_mantissa.b%
+        ) else (
+            rem echo:%_sign%%_mantissa%
+        )
+    )
 endlocal
 exit /b
 
