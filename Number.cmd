@@ -727,7 +727,7 @@ setlocal
 
     REM Count the digits of the mantissa to get the actual precision.
     call :strlen "%_mantissa%"
-    set /a _actual_precision = %errorlevel% - 1
+    set /a _actual_precision = %errorlevel%
 
     if defined _format.a (
         if not defined _format.b (
