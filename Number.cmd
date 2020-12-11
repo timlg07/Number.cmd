@@ -763,9 +763,7 @@ setlocal
     REM Increase the exponent as format.b digits are pulled to the right of the floating point.
     set /a _exponent += _format.b
 
-    rem echo:%_sign%%_mantissa.a%%_format.delim%%_mantissa.b%E%_exponent%
-
-endlocal
+endlocal & set "%~1=%_sign%%_mantissa.a%%_format.delim%%_mantissa.b%E%_exponent%"
 exit /b
 
 :adjustFormatPerExponent
@@ -787,12 +785,12 @@ exit /b
     if %_exponent% equ 0 (
         if defined _split (
             if "%_mantissa.a%"=="" set "_mantissa.a=0"
-            rem echo:%_sign%!_mantissa.a!%_format.delim%%_mantissa.b%
+            set "_r=%_sign%!_mantissa.a!%_format.delim%%_mantissa.b%"
         ) else (
-            rem echo:%_sign%%_mantissa%
+            set "_r=%_sign%%_mantissa%"
         )
     )
-endlocal
+endlocal & set "%~1=%_r%"
 exit /b
 
 
