@@ -734,10 +734,12 @@ setlocal
     if defined _format.a (
         if not defined _format.b (
             set /a _format.b = _actual_precision - _format.a
+            if !_format.b! lss 0 set /a _format.b = 0
         )
     ) else (
         if defined _format.b (
-            set /a format.a = _actual_precision - _format.b
+            set /a _format.a = _actual_precision - _format.b
+            if !_format.a! lss 0 set /a _format.a = 0
         ) else (
             REM Special case: completely dynamic formatting without exponent output.
             goto adjustFormatPerExponent
