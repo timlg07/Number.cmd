@@ -175,13 +175,13 @@ goto Finish
     :div_merge
         REM Subtract the exponents, because: a^r / a^s = a^(r-s)
         REM where a = 10; r = operand1.exponent; s = operand2.exponent;
-		
+        
         REM i) invert the second exponents sign
         set "_newExponentSign=-"
         if "%_operand2.exponent.integer:~0,1%"=="-" set "_newExponentSign=+"
-		call :forceSigns _operand2.exponent.integer
+        call :forceSigns _operand2.exponent.integer
         set "_operand2.exponent.integer=%_newExponentSign%%_operand2.exponent.integer:~1%"
-		
+        
         REM ii) add the exponents
         call :signedAdd _exponent = "%_operand1.exponent.integer%" + "%_operand2.exponent.integer%"
 
