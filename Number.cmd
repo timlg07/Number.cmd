@@ -27,6 +27,11 @@
         goto readParams
     )
 
+    REM Overwrite the precision if given differently from the format parameter.
+    if "%_format.active%"=="true" if defined _format.a if defined _format.b (
+        set /a _precision = _format.a + _format.b
+    )
+
     set "@return=NaN"
 
     call :decode _operand1 || ( echo.ERROR. First operand is not a number ^(NaN^).  & exit /b 1 )
@@ -451,6 +456,7 @@ exit /b
 
 
 :: If the given parameter-text is specifying the precision, it is set.
+:: If the parameter is not meant to contain precision information, the errorcode 1 is returned.
 :readPrecisionParam String %1
 setlocal
     for /f "tokens=1,2* delims=:" %%p in ("%~1") do (
@@ -462,12 +468,17 @@ setlocal
         set /a "_castedPrecision=%%~q"
         if !_castedPrecision! gtr 0 (
             set "_precision=!_castedPrecision!"
+        ) else (
+            echo Warning: Invalid precision, the precision must be higher than zero.
+            endlocal
+            exit /b 0
         )
     )
 endlocal & set "_precision=%_precision%"
 exit /b 0
 
 :: If the given parameter-text is specifying an output format, it is set.
+:: If the parameter is not meant to contain format specifications, the errorcode 1 is returned.
 :readFormatParam String %1
 setlocal
     for /f "tokens=1,2* delims=:" %%f in ("%~1") do (
@@ -487,6 +498,11 @@ setlocal
         REM Exit the loop if the whole format string was parsed.
         if "%_format%"=="" (
             if defined _format.delim (
+                if "%_format.a%"=="0" if "%_format.b%"=="0" (
+                    echo Warning: Invalid format, the combined amount of digits cannot be zero.
+                    endlocal
+                    exit /b 0
+                )
                 endlocal & (
                     set "_format.active=true"
                     set "_format.a=%_format.a%"
@@ -498,20 +514,20 @@ setlocal
                 REM Every format must at least specify a delimeter as floating point.
                 echo Warning: Incorrect format string, no floating point symbol provided. >&2
                 endlocal
-                exit /b 1
+                exit /b 0
             )
         )
 
         set "current="
-        set /a "_parsed=%_format:~0,1%"
-        if "%_format:~0,1%"=="0" set "current=0"
-        if %_parsed% gtr 0 set "current=%_parsed%"
+        :: Simply parsing the current character with set /a is not possible here, because characters
+        :: like "," or "/" have a special meaning and would give a missing operand exception.
+        echo."%_format:~0,1%" | findstr /r "\"[0-9]\"">nul && set "current=%_format:~0,1%"
 
         if not defined current (
             if defined _format.delim (
                 echo Warning: Incorrect format string, unexpected "%_format:~0,1%". >&2
                 endlocal
-                exit /b 1
+                exit /b 0
             ) else (
                 set "_format.delim=%_format:~0,1%"
                 set "_format=%_format:~1%"
@@ -697,8 +713,90 @@ exit /b 0
 exit /b
 
 
+:enforceOutputFormat String %1
+if not "%_format.active%"=="true" exit /b 1
+setlocal
+
+    REM Split the number in sign, mantissa and exponent.
+    for /F "delims=E tokens=1,2" %%D in ("!%~1!") do (
+        set "_mantissa=%%D"
+        set "_exponent=%%E"
+    )
+    set "_sign=%_mantissa:~0,1%"
+    set "_mantissa=%_mantissa:~1%"
+
+    REM Count the digits of the mantissa to get the actual precision.
+    call :strlen "%_mantissa%"
+    set /a _actual_precision = %errorlevel%
+
+    REM If required and possible, set the dynamic format option depending 
+    REM on the other format option and the actual-precision.
+    if defined _format.a (
+        if not defined _format.b (
+            set /a _format.b = _actual_precision - _format.a
+            if !_format.b! lss 0 set /a _format.b = 0
+        )
+    ) else (
+        if defined _format.b (
+            set /a _format.a = _actual_precision - _format.b
+            if !_format.a! lss 0 set /a _format.a = 0
+        ) else (
+            REM Special case: completely dynamic formatting without exponent output.
+            goto adjustFormatPerExponent
+        )
+    )
+
+    REM If actual_precision < requested_precision, append trailing zeros until both precisions are equal.
+    set /a _precisionDelta = _format.a + _format.b - _actual_precision
+    for /l %%i in (1 1 !_precisionDelta!) do set "_mantissa=!_mantissa!0"
+    set /a _exponent -= _precisionDelta
+    
+    REM Split up the mantissa in the first and second part.
+    set "_mantissa.a=!_mantissa:~0,%_format.a%!"
+    set "_mantissa.b=!_mantissa:~%_format.a%,%_format.b%!"
+
+    REM The floating delimiter is omitted if actual-precision = format.a, 
+    REM but not if actual-precision = format.b, where the first part is represented as a zero.
+    if "%_mantissa.a%"=="" set "_mantissa.a=0"
+    if "%_mantissa.b%"=="" set "_format.delim="
+
+    REM Increase the exponent as format.b digits are pulled to the right of the floating point.
+    set /a _exponent += _format.b
+
+endlocal & set "%~1=%_sign%%_mantissa.a%%_format.delim%%_mantissa.b%E%_exponent%"
+exit /b
+
+:adjustFormatPerExponent
+    REM Case 1: Positive exponent => Add zeros and display only part A.
+    if %_exponent% gtr 0 (
+        for /l %%i in (1 1 %_exponent%) do set "_mantissa=!_mantissa!0"
+        set /a _exponent = 0
+    )
+
+    REM Case 2: Negative exponent => Move the last (-1 * _exponent) digits from part A to part B.
+    if %_exponent% lss 0 (
+        set "_mantissa.a=!_mantissa:~0,%_exponent%!"
+        set "_mantissa.b=!_mantissa:~%_exponent%!"
+        set /a _exponent = 0
+        set "_split=true"
+    )
+
+    REM Case 3 & final behaviour for all cases: exponent == 0 and gets omited.
+    if %_exponent% equ 0 (
+        if defined _split (
+            if "%_mantissa.a%"=="" set "_mantissa.a=0"
+            set "_r=%_sign%!_mantissa.a!%_format.delim%%_mantissa.b%"
+        ) else (
+            set "_r=%_sign%%_mantissa%"
+        )
+    )
+endlocal & set "%~1=%_r%"
+exit /b
+
+
 :Finish
     call :optimize @return
+    call :enforceOutputFormat @return
     
     REM output result only when requested by '#' as variable name
     if "%_variable%"=="#" echo.%@return%
