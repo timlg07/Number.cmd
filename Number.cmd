@@ -735,7 +735,6 @@ setlocal
         if not defined _format.b (
             set /a _format.b = _actual_precision - _format.a
         )
-        rem todo: fill m.b with zeros if actual_precision < precision
     ) else (
         if defined _format.b (
             set /a format.a = _actual_precision - _format.b
@@ -744,6 +743,11 @@ setlocal
             goto adjustFormatPerExponent
         )
     )
+
+    REM If actual_precision < requested_precision, append trailing zeros until both precisions are equal.
+    set /a _precisionDelta = _format.a + _format.b - _actual_precision
+    for /l %%i in (1 1 !_precisionDelta!) do set "_mantissa=!_mantissa!0"
+    set /a _exponent -= _precisionDelta
     
     REM Split up the mantissa in the first and second part.
     set "_mantissa.a=!_mantissa:~0,%_format.a%!"
