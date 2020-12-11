@@ -456,6 +456,7 @@ exit /b
 
 
 :: If the given parameter-text is specifying the precision, it is set.
+:: If the parameter is not meant to contain precision information, the errorcode 1 is returned.
 :readPrecisionParam String %1
 setlocal
     for /f "tokens=1,2* delims=:" %%p in ("%~1") do (
@@ -467,12 +468,17 @@ setlocal
         set /a "_castedPrecision=%%~q"
         if !_castedPrecision! gtr 0 (
             set "_precision=!_castedPrecision!"
+        ) else (
+            echo Warning: Invalid precision, the precision must be higher than zero.
+            endlocal
+            exit /b 0
         )
     )
 endlocal & set "_precision=%_precision%"
 exit /b 0
 
 :: If the given parameter-text is specifying an output format, it is set.
+:: If the parameter is not meant to contain format specifications, the errorcode 1 is returned.
 :readFormatParam String %1
 setlocal
     for /f "tokens=1,2* delims=:" %%f in ("%~1") do (
@@ -492,6 +498,11 @@ setlocal
         REM Exit the loop if the whole format string was parsed.
         if "%_format%"=="" (
             if defined _format.delim (
+                if "%_format.a%"=="0" if "%_format.b%"=="0" (
+                    echo Warning: Invalid format, the combined amount of digits cannot be zero.
+                    endlocal
+                    exit /b 0
+                )
                 endlocal & (
                     set "_format.active=true"
                     set "_format.a=%_format.a%"
@@ -503,7 +514,7 @@ setlocal
                 REM Every format must at least specify a delimeter as floating point.
                 echo Warning: Incorrect format string, no floating point symbol provided. >&2
                 endlocal
-                exit /b 1
+                exit /b 0
             )
         )
 
@@ -516,7 +527,7 @@ setlocal
             if defined _format.delim (
                 echo Warning: Incorrect format string, unexpected "%_format:~0,1%". >&2
                 endlocal
-                exit /b 1
+                exit /b 0
             ) else (
                 set "_format.delim=%_format:~0,1%"
                 set "_format=%_format:~1%"
