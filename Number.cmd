@@ -717,11 +717,11 @@ exit /b
 if not "%_format.active%"=="true" exit /b 1
 setlocal
 
+    REM Split the number in sign, mantissa and exponent.
     for /F "delims=E tokens=1,2" %%D in ("!%~1!") do (
         set "_mantissa=%%D"
         set "_exponent=%%E"
     )
-
     set "_sign=%_mantissa:~0,1%"
     set "_mantissa=%_mantissa:~1%"
 
@@ -729,6 +729,8 @@ setlocal
     call :strlen "%_mantissa%"
     set /a _actual_precision = %errorlevel%
 
+    REM If required and possible, set the dynamic format option depending 
+    REM on the other format option and the actual-precision.
     if defined _format.a (
         if not defined _format.b (
             set /a _format.b = _actual_precision - _format.a
@@ -738,16 +740,21 @@ setlocal
         if defined _format.b (
             set /a format.a = _actual_precision - _format.b
         ) else (
+            REM Special case: completely dynamic formatting without exponent output.
             goto adjustFormatPerExponent
         )
     )
     
+    REM Split up the mantissa in the first and second part.
     set "_mantissa.a=!_mantissa:~0,%_format.a%!"
     set "_mantissa.b=!_mantissa:~%_format.a%,%_format.b%!"
 
+    REM The floating delimiter is omitted if actual-precision = format.a, 
+    REM but not if actual-precision = format.b, where the first part is represented as a zero.
     if "%_mantissa.a%"=="" set "_mantissa.a=0"
     if "%_mantissa.b%"=="" set "_format.delim="
 
+    REM Increase the exponent as format.b digits are pulled to the right of the floating point.
     set /a _exponent += _format.b
 
     rem echo:%_sign%%_mantissa.a%%_format.delim%%_mantissa.b%E%_exponent%
