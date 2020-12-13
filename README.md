@@ -5,7 +5,7 @@ A new data type for Batch, that can represent large and floating-point numbers a
 # Syntax
 The basic syntax of Number.cmd looks like this:
 ```
-Number <variable-name> = <operand1> <operator> <operand2> [precision:<digits>]
+Number <variable-name> = <operand1> <operator> <operand2> [precision:<digits>] [format:<pattern>]
 ```
 with: 
 - `<variable-name>` being the plain string of the batch variable that should be set.
@@ -13,6 +13,7 @@ with:
 The operands can also be constants like `Number.pi` or `Number.e`.
 - `<operator>` should be one of the following mathematical operators: `+`, `-`, `*`, `/`.
 - If you want, you can also specify a custom precision by adding an additional parameter, starting with `precision:` or the short form `p:`. Then you can specify the amount of significant digits. For example `1 / 3 p:4` will give you an output with 4 digit precision: `+3333E-4`. _(This works for all operations. Because division sometimes only terminates when specifying an maximum amount of digits, the precision has a default value of `8` that is used for division only.)_
+- To get the output in a specific format, you can provide a format pattern as optional argument. The argument needs to start with `format:` or, to keep it short, `f:`. Then you can specify the format-pattern for the output number: First the amount of digits before the floating point (leaving this unspecified will cause it to be dynamically set), then the symbol that should be used as floating point (has to be any other than `[0-9]`) and finally the amount of digits after the floating point (again you can leave this out for dynamic calcualtion). If you do not specify both amounts of digts and only provide a floating point symbol, the output will get adjusted completely dynamic and will never contain any exponents (exponent is adjusted to be zero and then omited). You can find more information about the format options here: https://github.com/timlg07/Number.cmd/issues/23#issuecomment-731588478.
 
 
 # Examples
@@ -20,9 +21,15 @@ The operands can also be constants like `Number.pi` or `Number.e`.
 Number x = 4 + 48
 Number x = %x% * -E5
 Number y = 50E5 + 2E5
-Number result = %x% + %y%
+Number result = %x% - %y% 
+Number result = %result% / 3000 
+Number result = %result% + 4 "format:."
+
+echo result: %result%
 ```
 Note: In batch files you have to `call Number` to continue execution.
+
+Other examples for real use cases can be found in [examples](examples/)
 
 
 # Usage
