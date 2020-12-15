@@ -734,6 +734,11 @@ setlocal
     if "%_mantissa%" neq "0" (
         set "_sign=%_mantissa:~0,1%"
         set "_mantissa=%_mantissa:~1%"
+    ) else (
+        REM Add a plus sign even if the number is zero.
+        if "%_format.showPlusSign%"=="true" (
+            set "_sign=+"
+        )
     )
 
     REM Decide whether to show or hide the sign.
