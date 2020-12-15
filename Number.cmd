@@ -722,8 +722,11 @@ setlocal
         set "_mantissa=%%D"
         set "_exponent=%%E"
     )
-    set "_sign=%_mantissa:~0,1%"
-    set "_mantissa=%_mantissa:~1%"
+
+    if "%_mantissa%" neq "0" (
+        set "_sign=%_mantissa:~0,1%"
+        set "_mantissa=%_mantissa:~1%"
+    )
 
     REM Count the digits of the mantissa to get the actual precision.
     call :strlen "%_mantissa%"
@@ -762,6 +765,9 @@ setlocal
 
     REM Increase the exponent as format.b digits are pulled to the right of the floating point.
     set /a _exponent += _format.b
+
+    REM Special case: Exponent can and should be zero, if the whole number is zero.
+    if "%_mantissa:0=%"=="" set /a _exponent = 0
 
 endlocal & set "%~1=%_sign%%_mantissa.a%%_format.delim%%_mantissa.b%E%_exponent%"
 exit /b
