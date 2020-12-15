@@ -469,7 +469,7 @@ setlocal
         if !_castedPrecision! gtr 0 (
             set "_precision=!_castedPrecision!"
         ) else (
-            echo Warning: Invalid precision, the precision must be higher than zero.
+            echo Warning: Invalid precision, the precision must be higher than zero. >&2
             endlocal
             exit /b 0
         )
@@ -506,7 +506,7 @@ setlocal
         if "%_format%"=="" (
             if defined _format.delim (
                 if "%_format.a%"=="0" if "%_format.b%"=="0" (
-                    echo Warning: Invalid format, the combined amount of digits cannot be zero.
+                    echo Warning: Invalid format, the combined amount of digits cannot be zero. >&2
                     endlocal
                     exit /b 0
                 )
