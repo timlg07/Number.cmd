@@ -7,14 +7,13 @@ The basic syntax of Number.cmd looks like this:
 ```
 Number <variable-name> = <operand1> <operator> <operand2> [precision:<digits>] [format:<pattern>]
 ```
-with: 
-- `<variable-name>` being the plain string of the batch variable that should be set.
+- With `<variable-name>` being the plain string of the batch variable that should be set.
 
-- `<operand1>` and `<operand2>` being the two operands of the calculation. They can be either normal integers or numbers in the internally used notation with mantissa and exponent, seperated by an `E`.  
+- With `<operand1>` and `<operand2>` being the two operands of the calculation. They can be either normal integers or numbers in the internally used notation with mantissa and exponent, seperated by an `E`.  
 For example the number `1,23` would be `123E-2` in this notation. If you want, you can write normal integers in this notation as well: `1200` for example would be `12E2`.  
 The operands can also be constants like `Number.pi` or `Number.e`.
 
-- `<operator>` should be one of the following mathematical operators: `+`, `-`, `*`, `/`.
+- And `<operator>` should be one of the following mathematical operators: `+`, `-`, `*`, `/`.
 
 - If you want, you can also specify a custom precision by adding an additional parameter, starting with `precision:` or the short form `p:`. Then you can specify the amount of significant digits.  
 For example `1 / 3 p:4` will give you an output with 4 digit precision: `+3333E-4`.  
