@@ -1,8 +1,8 @@
 # Number.cmd
 A new data type for Batch, that can represent large and floating-point numbers and enables calculation with those.
 
-![GitHub](https://img.shields.io/github/license/timlg07/Number.cmd)
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/timlg07/Number.cmd)
+[![GitHub](https://img.shields.io/github/license/timlg07/Number.cmd)](LICENSE)
+[![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/timlg07/Number.cmd)](/)
 [![Discord](https://img.shields.io/discord/728958932210679869?label=Support)](https://discord.gg/tapENZws2e)
 
 # Syntax
