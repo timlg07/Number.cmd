@@ -798,7 +798,13 @@ exit /b
     )
 
     REM Case 2: Negative exponent => Move the last (-1 * _exponent) digits from part A to part B.
+    call :strlen "%_mantissa%"
+    set /a _mantissaLength = %errorlevel%
     if %_exponent% lss 0 (
+        REM Append additional leading zeros if necessary.
+        set /a "_missingDecimals = -1 * (_exponent + _mantissaLength)"
+        for /l %%i in (1 1 !_missingDecimals!) do set "_mantissa=0!_mantissa!"
+
         set "_mantissa.a=!_mantissa:~0,%_exponent%!"
         set "_mantissa.b=!_mantissa:~%_exponent%!"
         set /a _exponent = 0
