@@ -445,13 +445,19 @@ exit /b
 exit /b
 
 :storeEchoState
-    @echo > "%tmp%\number-cmd-echo-state"
-    @find /i "(on)" "%tmp%\number-cmd-echo-state" >nul 2>&1 && (
+    @set "_es_filename=%tmp%\number-cmd-echo-state-"
+    :storeEchoState_findUniqueFilename
+    @set "_es_filename=%_es_filename%%random%"
+    @if exist "%_es_filename%" (
+        goto storeEchoState_findUniqueFilename
+    )
+    @echo > "%_es_filename%"
+    @find /i "(on)" "%_es_filename%" >nul 2>&1 && (
         set "_echoState=on"
     ) || (
         set "_echoState=off"
     )
-    @del "%tmp%\number-cmd-echo-state" 2>nul
+    @del "%_es_filename%" 2>nul
 @exit /b
 
 
