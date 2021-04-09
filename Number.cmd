@@ -448,9 +448,7 @@ exit /b
     @set "_es_filename=%tmp%\number-cmd-echo-state-"
     :storeEchoState_findUniqueFilename
     @set "_es_filename=%_es_filename%%random%"
-    @if exist "%_es_filename%" (
-        goto storeEchoState_findUniqueFilename
-    )
+    @if exist "%_es_filename%" goto storeEchoState_findUniqueFilename
     @echo > "%_es_filename%"
     @find /i "(on)" "%_es_filename%" >nul 2>&1 && (
         set "_echoState=on"
