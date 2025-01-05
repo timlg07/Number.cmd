@@ -574,6 +574,12 @@ setlocal
 
     REM check for floating point number
     if "!%~1:.=!"=="!%~1!" if "!%~1:,=!"=="!%~1!" goto :decode_exp_notation
+    REM handle decimal point in first or last position
+    if "!%~1:~0,1!"=="." set "%~1=0!%~1!"
+    if "!%~1:~0,1!"=="," set "%~1=0!%~1!"
+    if "!%~1:~-1!"=="." set "%~1=!%~1!0"
+    if "!%~1:~-1!"=="," set "%~1=!%~1!0"
+    REM count the digits after the decimal point
     for /F "delims=., tokens=1,2" %%E in ("!%~1!") do (
         set "%~1.mantissa.integer=%%E%%F"
         call :strlen "%%~F"
