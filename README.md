@@ -12,9 +12,13 @@ Number <variable-name> = <operand1> <operator> <operand2> [precision:<digits>] [
 ```
 - With `<variable-name>` being the plain string of the batch variable that should be set.
 
-- With `<operand1>` and `<operand2>` being the two operands of the calculation. They can be either normal integers or numbers in the internally used notation with mantissa and exponent, seperated by an `E`.  
-For example the number `1,23` would be `123E-2` in this notation. If you want, you can write normal integers in this notation as well: `1200` for example would be `12E2`.  
-The operands can also be constants like `Number.pi` or `Number.e`.
+- With `<operand1>` and `<operand2>` being the two operands of the calculation. They can be either 
+  - normal integers, 
+  - floating point numbers seperated by a dot or comma  
+    (Be aware that a comma outside of quotes is interpreted as delimeter between arguments for batch, so always use quotes around the numbers if using commas as decimal point) or  
+  - numbers in the internally used notation with mantissa and exponent, seperated by an `E`.  
+    (For example the number `1,23` would be `123E-2` in the internal notation. If you want, you can write normal integers in this notation as well: `1200` for example would be `12E2`.)
+  - The operands can also be constants like `Number.pi` or `Number.e`.
 
 - And `<operator>` should be one of the following mathematical operators: `+`, `-`, `*`, `/`.
 

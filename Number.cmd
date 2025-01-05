@@ -571,7 +571,17 @@ setlocal
         REM 1.618033988749894848204586834365638117720309179805762862135448
         if /i "!%~1:~7!"=="phi" set "%~1=+161803398E-8"
     )
+
+    REM check for floating point number
+    if "!%~1:.=!"=="!%~1!" if "!%~1:,=!"=="!%~1!" goto :decode_exp_notation
+    for /F "delims=., tokens=1,2" %%E in ("!%~1!") do (
+        set "%~1.mantissa.integer=%%E%%F"
+        call :strlen "%%~F"
+        set /a "%~1.exponent.integer=-!errorlevel!"
+    )
+    goto :decode_cleanup
     
+    :decode_exp_notation
     REM if only E^x is given the mantissa is 1; this is needed here so the for is executed in this case, too
     if /i "!%~1:~0,1!"=="E"  set "%~1=+1!%~1!"
     
@@ -580,23 +590,6 @@ setlocal
     
         REM define mantissa
         set "%~1.mantissa.integer=%%D"
-        
-        REM if only E^x is given the mantissa is 1
-        if /i "!%~1:~0,2!"=="+E" set "%~1.mantissa.integer=+1"
-        if /i "!%~1:~0,2!"=="-E" set "%~1.mantissa.integer=-1"
-        
-        REM if no sign is given and the number is not zero, it's assumed to be positive
-        call :forceSignsExceptZero "%~1.mantissa.integer"
-        
-        REM check for only zeros
-        set "%~1.mantissa.integer.abs=!%~1.mantissa.integer:-=!"
-        set "%~1.mantissa.integer.abs=!%~1.mantissa.integer.abs:+=!"
-        if "!%~1.mantissa.integer.abs:0=!"=="" (
-            set "%~1.zero=true"
-            set "%~1.mantissa.integer=0"
-        ) else (
-            call :trimLeadingZeros "%~1.mantissa.integer"
-        )
         
         REM define exponent
         set "%~1.exponent.integer=%%E"
@@ -607,18 +600,36 @@ setlocal
                 set "%~1.exponent.integer=0"
             )
         )
+    )
+
+    :decode_cleanup
+    REM if only E^x is given the mantissa is 1
+    if /i "!%~1:~0,2!"=="+E" set "%~1.mantissa.integer=+1"
+    if /i "!%~1:~0,2!"=="-E" set "%~1.mantissa.integer=-1"
+    
+    REM if no sign is given and the number is not zero, it's assumed to be positive
+    call :forceSignsExceptZero "%~1.mantissa.integer"
+
+    REM check for only zeros
+    set "%~1.mantissa.integer.abs=!%~1.mantissa.integer:-=!"
+    set "%~1.mantissa.integer.abs=!%~1.mantissa.integer.abs:+=!"
+    if "!%~1.mantissa.integer.abs:0=!"=="" (
+        set "%~1.zero=true"
+        set "%~1.mantissa.integer=0"
+    ) else (
+        call :trimLeadingZeros "%~1.mantissa.integer"
+    )
         
-        REM If no sign is given the exponent is assumed to be positive.
-        call :forceSigns "%~1.exponent.integer"
-        
-        REM check for only zeros
-        set "%~1.exponent.integer.abs=!%~1.exponent.integer:~1!"
-        if "!%~1.exponent.integer.abs:0=!"=="" (
-            set "%~1.exponent.zero=true"
-            set "%~1.exponent.integer=0"
-        ) else (
-            call :trimLeadingZeros "%~1.exponent.integer"
-        )
+    REM If no sign is given the exponent is assumed to be positive.
+    call :forceSigns "%~1.exponent.integer"
+    
+    REM check for only zeros
+    set "%~1.exponent.integer.abs=!%~1.exponent.integer:~1!"
+    if "!%~1.exponent.integer.abs:0=!"=="" (
+        set "%~1.exponent.zero=true"
+        set "%~1.exponent.integer=0"
+    ) else (
+        call :trimLeadingZeros "%~1.exponent.integer"
     )
 exit /b 0
 
